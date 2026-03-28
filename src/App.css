@@ -271,6 +271,7 @@ td.empty {
   font-size: 0.78rem;
   color: var(--muted);
   line-height: 1.6;
+  text-align: center;
 }
 
 .footer-copyright {
@@ -278,6 +279,7 @@ td.empty {
   font-size: 0.82rem;
   color: var(--muted);
   letter-spacing: 0.02em;
+  text-align: center;
 }
 
 .footer-dev-hint {

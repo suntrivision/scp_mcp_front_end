@@ -7,7 +7,7 @@ export const DATA_SOURCE_OPTIONS = [
   { id: 'distribution', label: 'Distribution orders (input/distributionorder/)' },
   { id: 'item', label: 'Items (input/item/)' },
   { id: 'customer', label: 'Customers (input/customer/)' },
-  { id: 'supplier', label: 'Suppliers / purchase (as exposed by MCP)' },
+  { id: 'supplier', label: 'Suppliers / purchase' },
 ];
 
 export const OUTPUT_FORMATS = [

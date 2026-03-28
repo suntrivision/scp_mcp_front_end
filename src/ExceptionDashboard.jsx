@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { fetchExceptionDashboard } from './tallyService.js';
+import { fetchExceptionDashboard, queryFreppleNaturalLanguage } from './tallyService.js';
 import { EXCEPTION_DASHBOARD_PROMPT } from './freppleExceptionDashboardPrompt.js';
 
 const KPI_ORDER = [
@@ -60,30 +60,36 @@ function severityClass(sev) {
   return 'sev-low';
 }
 
-export function ExceptionDashboardPromptPanel() {
-  const [copied, setCopied] = useState(false);
-  const copy = useCallback(() => {
-    void navigator.clipboard?.writeText(EXCEPTION_DASHBOARD_PROMPT);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
+function DynamicResultTable({ rows }) {
+  if (!rows?.length) return null;
+  const cols = Object.keys(rows[0]);
   return (
-    <details className="exception-prompt-details">
-      <summary>Enter prompt</summary>
-      <p className="hint">
-        This is the same text sent when you refresh the dashboard. Use it in other tools or backend prompts if needed.
-      </p>
-      <div className="prompt-actions">
-        <button type="button" className="btn" onClick={copy}>
-          {copied ? 'Copied' : 'Copy prompt'}
-        </button>
-      </div>
-      <pre className="exception-prompt-pre">{EXCEPTION_DASHBOARD_PROMPT}</pre>
-    </details>
+    <div className="table-wrap scroll exception-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {cols.map((col) => (
+              <th key={col}>{col}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              {cols.map((col) => (
+                <td key={`${i}-${col}`}>{String(row[col] ?? '—')}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
 export default function ExceptionDashboard() {
+  const [agentTab, setAgentTab] = useState('report');
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [summary, setSummary] = useState('');
@@ -94,7 +100,17 @@ export default function ExceptionDashboard() {
   const [filterType, setFilterType] = useState('all');
   const [filterSeverity, setFilterSeverity] = useState('all');
 
-  const load = useCallback(async () => {
+  const [promptText, setPromptText] = useState('');
+  const [promptLoading, setPromptLoading] = useState(false);
+  const [promptErr, setPromptErr] = useState(null);
+  const [promptSummary, setPromptSummary] = useState('');
+  const [promptKpis, setPromptKpis] = useState({});
+  const [promptRows, setPromptRows] = useState([]);
+  const [promptWarning, setPromptWarning] = useState(undefined);
+  const [promptIntent, setPromptIntent] = useState('');
+  const [promptReady, setPromptReady] = useState(false);
+
+  const loadReport = useCallback(async () => {
     setError(null);
     setLoading(true);
     try {
@@ -109,6 +125,31 @@ export default function ExceptionDashboard() {
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  const runCustomPrompt = useCallback(async () => {
+    const text = promptText.trim();
+    if (!text || promptLoading) return;
+    setPromptErr(null);
+    setPromptLoading(true);
+    try {
+      const data = await queryFreppleNaturalLanguage({ message: text });
+      setPromptSummary(data.summary || '');
+      setPromptKpis(data.kpis && typeof data.kpis === 'object' ? data.kpis : {});
+      setPromptRows(Array.isArray(data.rows) ? data.rows : []);
+      setPromptWarning(data.warning);
+      setPromptIntent(data.intent || '');
+      setPromptReady(true);
+    } catch (e) {
+      setPromptErr(e?.message || 'Query failed');
+      setPromptReady(false);
+    } finally {
+      setPromptLoading(false);
+    }
+  }, [promptText, promptLoading]);
+
+  const loadDefaultPrompt = useCallback(() => {
+    setPromptText(EXCEPTION_DASHBOARD_PROMPT);
   }, []);
 
   const exceptionTypes = useMemo(() => {
@@ -127,16 +168,18 @@ export default function ExceptionDashboard() {
     });
   }, [rows, filterType, filterSeverity]);
 
-  const cards = useMemo(() => {
+  const reportCards = useMemo(() => {
     return KPI_ORDER.map((label) => ({
       label,
       count: Number(kpis[label]) || 0,
     }));
   }, [kpis]);
 
+  const promptKpiEntries = useMemo(() => Object.entries(promptKpis || {}), [promptKpis]);
+
   return (
     <section className="card exception-dashboard">
-      <div className="card-head">
+      <div className="card-head exception-agent-head">
         <div>
           <h2>AI Exception Agent</h2>
           <p className="hint minimal-gap">
@@ -145,111 +188,187 @@ export default function ExceptionDashboard() {
             Refresh data
           </p>
         </div>
-        <button type="button" className="btn primary" onClick={load} disabled={loading}>
-          {loading ? 'Loading…' : 'Refresh data'}
+      </div>
+
+      <div className="exception-agent-tabs" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={agentTab === 'report'}
+          className={`btn ${agentTab === 'report' ? 'primary' : ''}`}
+          onClick={() => setAgentTab('report')}
+        >
+          Exception Report
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={agentTab === 'prompt'}
+          className={`btn ${agentTab === 'prompt' ? 'primary' : ''}`}
+          onClick={() => setAgentTab('prompt')}
+        >
+          Enter prompt
         </button>
       </div>
 
-      <ExceptionDashboardPromptPanel />
-
-      {error && <p className="err">{error}</p>}
-      {warning && !error && <p className="hint warn-banner">{warning}</p>}
-
-      {loading && rows.length === 0 && !error && (
-        <div className="dashboard-loading">
-          <div className="loading-bar" />
-          <p className="hint">Querying frePPLe MCP tools and applying exception rules…</p>
-        </div>
-      )}
-
-      {!loading && !error && !dataReady && (
-        <p className="hint">Click &ldquo;Refresh data&rdquo; to refresh the AI Exception Agent.</p>
-      )}
-
-      {summary ? (
-        <p className="exception-summary">{summary}</p>
-      ) : null}
-
-      {dataReady ? (
-        <div className="exception-cards">
-          {cards.map(({ label, count }) => (
-            <div key={label} className="exception-card">
-              <div className="exception-card-count">{count}</div>
-              <div className="exception-card-label">{label}</div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {dataReady && (
+      {agentTab === 'report' && (
         <>
-          <div className="exception-filters">
-            <label className="field inline">
-              <span>Exception type</span>
-              <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
-                <option value="all">All types</option>
-                {exceptionTypes.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="field inline">
-              <span>Severity</span>
-              <select value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
-                <option value="all">All</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-            </label>
-            <span className="filter-meta">
-              Showing {filteredRows.length} of {rows.length} rows
-            </span>
+          <div className="exception-report-toolbar">
+            <button type="button" className="btn primary" onClick={loadReport} disabled={loading}>
+              {loading ? 'Loading…' : 'Refresh data'}
+            </button>
           </div>
 
-          <div className="table-wrap scroll exception-table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th>Location</th>
-                  <th>Exception type</th>
-                  <th>Severity</th>
-                  <th>Recommended action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredRows.length === 0 && (
-                  <tr>
-                    <td colSpan={5} className="empty">
-                      No rows match the current filters.
-                    </td>
-                  </tr>
-                )}
-                {[...filteredRows]
-                  .sort((a, b) => {
-                    const ds = (SEVERITY_LEVEL[a.severity] ?? 3) - (SEVERITY_LEVEL[b.severity] ?? 3);
-                    if (ds !== 0) return ds;
-                    return a.exception_type.localeCompare(b.exception_type, undefined, {
-                      sensitivity: 'base',
-                    });
-                  })
-                  .map((row, i) => (
-                    <tr key={`${row.item}-${row.location}-${row.exception_type}-${i}`}>
-                      <td>{row.item}</td>
-                      <td>{row.location}</td>
-                      <td>{row.exception_type}</td>
-                      <td>
-                        <span className={`sev-badge ${severityClass(row.severity)}`}>{row.severity}</span>
-                      </td>
-                      <td className="action-cell">{row.recommended_action}</td>
+          {error && <p className="err">{error}</p>}
+          {warning && !error && <p className="hint warn-banner">{warning}</p>}
+
+          {loading && rows.length === 0 && !error && (
+            <div className="dashboard-loading">
+              <div className="loading-bar" />
+              <p className="hint">Querying live data and applying exception rules…</p>
+            </div>
+          )}
+
+          {!loading && !error && !dataReady && (
+            <p className="hint">Click &ldquo;Refresh data&rdquo; to refresh the AI Exception Agent.</p>
+          )}
+
+          {summary ? <p className="exception-summary">{summary}</p> : null}
+
+          {dataReady ? (
+            <div className="exception-cards">
+              {reportCards.map(({ label, count }) => (
+                <div key={label} className="exception-card">
+                  <div className="exception-card-count">{count}</div>
+                  <div className="exception-card-label">{label}</div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {dataReady && (
+            <>
+              <div className="exception-filters">
+                <label className="field inline">
+                  <span>Exception type</span>
+                  <select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                    <option value="all">All types</option>
+                    {exceptionTypes.map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="field inline">
+                  <span>Severity</span>
+                  <select value={filterSeverity} onChange={(e) => setFilterSeverity(e.target.value)}>
+                    <option value="all">All</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </label>
+                <span className="filter-meta">
+                  Showing {filteredRows.length} of {rows.length} rows
+                </span>
+              </div>
+
+              <div className="table-wrap scroll exception-table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Location</th>
+                      <th>Exception type</th>
+                      <th>Severity</th>
+                      <th>Recommended action</th>
                     </tr>
-                  ))}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {filteredRows.length === 0 && (
+                      <tr>
+                        <td colSpan={5} className="empty">
+                          No rows match the current filters.
+                        </td>
+                      </tr>
+                    )}
+                    {[...filteredRows]
+                      .sort((a, b) => {
+                        const ds = (SEVERITY_LEVEL[a.severity] ?? 3) - (SEVERITY_LEVEL[b.severity] ?? 3);
+                        if (ds !== 0) return ds;
+                        return a.exception_type.localeCompare(b.exception_type, undefined, {
+                          sensitivity: 'base',
+                        });
+                      })
+                      .map((row, i) => (
+                        <tr key={`${row.item}-${row.location}-${row.exception_type}-${i}`}>
+                          <td>{row.item}</td>
+                          <td>{row.location}</td>
+                          <td>{row.exception_type}</td>
+                          <td>
+                            <span className={`sev-badge ${severityClass(row.severity)}`}>{row.severity}</span>
+                          </td>
+                          <td className="action-cell">{row.recommended_action}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {agentTab === 'prompt' && (
+        <>
+          <p className="hint exception-prompt-intro">
+            Type or paste a prompt. Use &ldquo;Load default exception prompt&rdquo; for the standard exception report
+            instructions, then run or edit before sending.
+          </p>
+          <div className="exception-prompt-editor">
+            <textarea
+              className="exception-prompt-textarea"
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+              placeholder="Enter your prompt for the planning assistant…"
+              rows={12}
+              spellCheck={false}
+            />
+            <div className="exception-prompt-actions">
+              <button type="button" className="btn" onClick={loadDefaultPrompt}>
+                Load default exception prompt
+              </button>
+              <button type="button" className="btn primary" onClick={runCustomPrompt} disabled={promptLoading}>
+                {promptLoading ? 'Running…' : 'Run prompt'}
+              </button>
+            </div>
           </div>
+
+          {promptErr && <p className="err">{promptErr}</p>}
+          {promptWarning && !promptErr && <p className="hint warn-banner">{promptWarning}</p>}
+
+          {promptReady && !promptErr && (
+            <>
+              {promptIntent ? (
+                <p className="hint">
+                  Intent: <code>{promptIntent}</code>
+                </p>
+              ) : null}
+              {promptSummary ? <p className="exception-summary">{promptSummary}</p> : null}
+              {promptKpiEntries.length > 0 && (
+                <div className="exception-cards">
+                  {promptKpiEntries.map(([k, v]) => (
+                    <div key={k} className="exception-card">
+                      <div className="exception-card-count">{String(v)}</div>
+                      <div className="exception-card-label">{k}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <DynamicResultTable rows={promptRows} />
+            </>
+          )}
         </>
       )}
     </section>

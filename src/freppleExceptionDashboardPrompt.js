@@ -1,8 +1,8 @@
 /**
- * Instructions sent to the frePPLe MCP-backed `/api/frepple/query` endpoint.
- * The server wraps this in its structured-JSON system prompt; keep output valid JSON only.
+ * Default exception report instructions for `/api/frepple/query`.
+ * Server may wrap this; keep JSON schema instructions intact.
  */
-export const EXCEPTION_DASHBOARD_PROMPT = `Build an exception dashboard dataset for demand planners using ONLY frePPLe MCP tools (live data).
+export const EXCEPTION_DASHBOARD_PROMPT = `Build an exception dashboard dataset for demand planners using live data.
 
 **Data sources to query:**
 - Sales orders / demands: input/demand/ — late, unplanned, or overdue

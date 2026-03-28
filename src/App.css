@@ -393,37 +393,51 @@ td.empty {
   margin: 0.25rem 0 0;
 }
 
-.exception-prompt-details {
+.exception-agent-head {
+  margin-bottom: 0.5rem;
+}
+
+.exception-agent-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+}
+
+.exception-report-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.75rem;
+}
+
+.exception-prompt-intro {
+  margin: 0 0 0.75rem;
+}
+
+.exception-prompt-editor {
+  margin-bottom: 1rem;
+}
+
+.exception-prompt-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  line-height: 1.45;
+  background: var(--surface);
   border: 1px solid var(--border);
+  color: var(--text);
   border-radius: 8px;
-  padding: 0.5rem 0.75rem;
-  background: rgba(0, 0, 0, 0.12);
+  resize: vertical;
+  margin-bottom: 0.75rem;
 }
 
-.exception-prompt-details summary {
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.prompt-actions {
-  margin: 0.5rem 0;
-}
-
-.exception-prompt-pre {
-  margin: 0;
-  max-height: 200px;
-  overflow: auto;
-  padding: 0.65rem;
-  font-size: 0.72rem;
-  line-height: 1.4;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  white-space: pre-wrap;
-  word-break: break-word;
+.exception-prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .dashboard-loading {

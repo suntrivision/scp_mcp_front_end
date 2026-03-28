@@ -53,7 +53,7 @@ export async function getTrialBalance(opts) {
 
 /**
  * @param {{ message: string }} opts
- * @returns {Promise<{intent:string,summary:string,kpis:object,rows:object[],raw?:string,warning?:string}>}
+ * @returns {Promise<{intent:string,summary:string,kpis:object,rows:object[],narrative?:string,raw?:string,warning?:string}>}
  */
 export async function queryFreppleNaturalLanguage(opts) {
   const r = await fetch('/api/frepple/query', {
@@ -70,6 +70,7 @@ export async function queryFreppleNaturalLanguage(opts) {
     summary: data.summary || '',
     kpis: data.kpis || {},
     rows: Array.isArray(data.rows) ? data.rows : [],
+    narrative: typeof data.narrative === 'string' ? data.narrative : '',
     raw: data.raw || '',
     warning: data.warning,
   };

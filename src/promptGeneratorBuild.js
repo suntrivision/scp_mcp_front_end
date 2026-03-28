@@ -33,9 +33,9 @@ export function buildGeneratedPrompt(p) {
       ? 'Return a short narrative plus a compact markdown table for tabular lists.'
       : p.outputFormat === 'deep'
         ? 'Return structured reasoning: findings, evidence from data, assumptions, caveats, and suggested next actions.'
-        : 'Return JSON only with keys: intent, summary, kpis (object), rows (array of objects). No markdown fences.';
+        : 'Return JSON only with keys: intent, summary, kpis (object), rows (array of objects), narrative (string: in plain conversational language, explain what the results mean for a planner and give recommendations or next steps). No markdown fences.';
 
-  const outputException = `Return JSON only (no markdown) with keys: intent, summary, kpis (counts by category), rows (array of objects with item, location, root_cause_category, exception_type, severity High|Medium|Low, recommended_action, detail).`;
+  const outputException = `Return JSON only (no markdown) with keys: intent, summary, kpis (counts by category), rows (array of objects with item, location, root_cause_category, exception_type, severity High|Medium|Low, recommended_action, detail), narrative (string: conversational explanation of the exception picture and prioritized recommendations for planners).`;
 
   if (p.mode === 'exception') {
     return `You are a Y3 Exception Analyst. Use MCP tools only with live data.

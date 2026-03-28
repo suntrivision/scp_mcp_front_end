@@ -57,4 +57,6 @@ export const DEMO_EXCEPTION_RESPONSE = {
       detail: 'Available quantity at alternate location could cover shortage within 2-day transit.',
     },
   ],
+  narrative:
+    'Overall, supplier delays and forecast misses are driving the most urgent risk to service levels. Start with the high-severity supplier delay lines and expedite or re-source where dock dates have slipped. Next, align consensus forecast with recent actuals for the SKUs showing forecast miss, and validate safety stock. For items below ROP without a PO, release or refresh MRP so replenishment catches up. This demo text stands in when the live API is unavailable.',
 };

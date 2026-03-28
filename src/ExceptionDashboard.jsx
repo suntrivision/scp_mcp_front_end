@@ -173,6 +173,7 @@ export default function ExceptionDashboard() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterSeverity, setFilterSeverity] = useState('all');
   const [isDemo, setIsDemo] = useState(false);
+  const [narrative, setNarrative] = useState('');
 
   const [promptText, setPromptText] = useState('');
   const [promptLoading, setPromptLoading] = useState(false);
@@ -187,11 +188,13 @@ export default function ExceptionDashboard() {
   const [promptFilterCategory, setPromptFilterCategory] = useState('all');
   const [promptFilterSeverity, setPromptFilterSeverity] = useState('all');
   const [promptUseStructuredLayout, setPromptUseStructuredLayout] = useState(true);
+  const [promptNarrative, setPromptNarrative] = useState('');
 
   const applyDemo = useCallback(() => {
     setSummary(DEMO_EXCEPTION_RESPONSE.summary);
     setKpis(DEMO_EXCEPTION_RESPONSE.kpis);
     setRows(DEMO_EXCEPTION_RESPONSE.rows.map(normalizeRow));
+    setNarrative(DEMO_EXCEPTION_RESPONSE.narrative || '');
     setWarning(undefined);
     setDataReady(true);
     setIsDemo(true);
@@ -201,12 +204,14 @@ export default function ExceptionDashboard() {
   const loadReport = useCallback(async () => {
     setError(null);
     setIsDemo(false);
+    setNarrative('');
     setLoading(true);
     try {
       const data = await fetchExceptionDashboard();
       setSummary(data.summary || '');
       setKpis(data.kpis && typeof data.kpis === 'object' ? data.kpis : {});
       setRows(Array.isArray(data.rows) ? data.rows.map(normalizeRow) : []);
+      setNarrative(typeof data.narrative === 'string' ? data.narrative : '');
       setWarning(data.warning);
       setDataReady(true);
     } catch (e) {
@@ -226,12 +231,14 @@ export default function ExceptionDashboard() {
     if (!text || promptLoading) return;
     setPromptText(text);
     setPromptErr(null);
+    setPromptNarrative('');
     setPromptLoading(true);
     setPromptReady(false);
     try {
       const data = await queryFreppleNaturalLanguage({ message: text });
       setPromptSummary(data.summary || '');
       setPromptKpis(data.kpis && typeof data.kpis === 'object' ? data.kpis : {});
+      setPromptNarrative(typeof data.narrative === 'string' ? data.narrative : '');
       const raw = Array.isArray(data.rows) ? data.rows : [];
       setPromptRowsRaw(raw);
       const normalized = raw.map(normalizeRow);
@@ -394,6 +401,12 @@ export default function ExceptionDashboard() {
               </div>
 
               <ExpandableExceptionList rows={filteredRows} />
+              {narrative ? (
+                <div className="query-narrative">
+                  <h4 className="query-narrative-title">Insights &amp; recommendations</h4>
+                  <p className="query-narrative-body">{narrative}</p>
+                </div>
+              ) : null}
             </>
           )}
         </>
@@ -494,6 +507,12 @@ export default function ExceptionDashboard() {
               ) : (
                 <DynamicResultTable rows={promptRowsRaw} />
               )}
+              {promptNarrative ? (
+                <div className="query-narrative">
+                  <h4 className="query-narrative-title">Insights &amp; recommendations</h4>
+                  <p className="query-narrative-body">{promptNarrative}</p>
+                </div>
+              ) : null}
             </>
           )}
         </>

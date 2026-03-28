@@ -42,7 +42,8 @@ Also retain classic planning exceptions where visible: late/unplanned demand, fo
       "recommended_action": "concise planner action",
       "detail": "short explanation of why this exception was flagged"
     }
-  ]
+  ],
+  "narrative": "2-6 sentences in conversational language: interpret the KPIs and rows for a demand planner, highlight where to act first, and suggest concrete next steps."
 }
 
 Use severity: High = revenue or service risk; Medium = planning risk; Low = watchlist.

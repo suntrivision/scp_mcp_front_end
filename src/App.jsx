@@ -195,6 +195,12 @@ export default function App() {
                 </table>
               </div>
             )}
+            {queryResult.narrative ? (
+              <div className="query-narrative">
+                <h4 className="query-narrative-title">Insights &amp; recommendations</h4>
+                <p className="query-narrative-body">{queryResult.narrative}</p>
+              </div>
+            ) : null}
           </div>
         )}
         </section>

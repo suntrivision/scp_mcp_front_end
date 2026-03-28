@@ -85,9 +85,10 @@ function buildFreppleStructuredPrompt({ message, intent }) {
     'JSON schema:',
     '{',
     '  "intent": "late_orders|availability_check|bottleneck_analysis|general_query",',
-    '  "summary": "short explanation",',
+    '  "summary": "brief headline of what you found",',
     '  "kpis": { "key": "number or string" },',
-    '  "rows": [ { "column": "value" } ]',
+    '  "rows": [ { "column": "value" } ],',
+    '  "narrative": "required: 2-6 sentences in plain, conversational language for a planner. After reflecting on summary, KPIs, and rows, explain what the results mean, call out risks or opportunities, and give concrete recommendations or next steps."',
     '}',
     '',
     `Detected intent: ${intent}`,
@@ -104,6 +105,7 @@ function parseStructuredResponse(raw, fallbackIntent) {
       summary: parsed.summary || 'Response received.',
       kpis: parsed.kpis && typeof parsed.kpis === 'object' ? parsed.kpis : {},
       rows: Array.isArray(parsed.rows) ? parsed.rows : [],
+      narrative: typeof parsed.narrative === 'string' ? parsed.narrative.trim() : '',
       raw: text,
     };
   } catch {
@@ -117,6 +119,7 @@ function parseStructuredResponse(raw, fallbackIntent) {
           summary: parsed.summary || 'Response received.',
           kpis: parsed.kpis && typeof parsed.kpis === 'object' ? parsed.kpis : {},
           rows: Array.isArray(parsed.rows) ? parsed.rows : [],
+          narrative: typeof parsed.narrative === 'string' ? parsed.narrative.trim() : '',
           raw: text,
         };
       } catch {
@@ -129,6 +132,7 @@ function parseStructuredResponse(raw, fallbackIntent) {
     summary: text || 'No response generated.',
     kpis: {},
     rows: [],
+    narrative: '',
     raw: text,
   };
 }

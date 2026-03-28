@@ -8,20 +8,13 @@ export default function App() {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatErr, setChatErr] = useState(null);
   const [queryResult, setQueryResult] = useState(null);
-  const [chatHistory, setChatHistory] = useState([
-    {
-      role: 'assistant',
-      content:
-        'Ask me anything about SC Trivision data. Example: "Show top 10 open sales orders by due date."',
-    },
-  ]);
 
   const sendFreppleChat = useCallback(async () => {
     const text = chatInput.trim();
     if (!text || chatLoading) return;
     setChatErr(null);
+    setQueryResult(null);
     setChatLoading(true);
-    setChatHistory((prev) => [...prev, { role: 'user', content: text }]);
     setChatInput('');
     try {
       const data = await queryFreppleNaturalLanguage({ message: text });
@@ -29,10 +22,6 @@ export default function App() {
     } catch (e) {
       setChatErr(e.message);
       setQueryResult(null);
-      setChatHistory((prev) => [
-        ...prev,
-        { role: 'assistant', content: `I hit an error:\n${e.message}` },
-      ]);
     } finally {
       setChatLoading(false);
     }
@@ -65,15 +54,14 @@ export default function App() {
     async (prompt) => {
       if (chatLoading) return;
       setChatErr(null);
+      setQueryResult(null);
       setChatLoading(true);
-      setChatHistory((prev) => [...prev, { role: 'user', content: prompt }]);
       try {
         const data = await queryFreppleNaturalLanguage({ message: prompt });
         setQueryResult(data);
       } catch (e) {
         setChatErr(e.message);
         setQueryResult(null);
-        setChatHistory((prev) => [...prev, { role: 'assistant', content: `I hit an error:\n${e.message}` }]);
       } finally {
         setChatLoading(false);
       }
@@ -129,15 +117,26 @@ export default function App() {
             </button>
           ))}
         </div>
-        {chatErr && <p className="err">{chatErr}</p>}
-        <div className="chat-box">
-          {chatHistory.map((m, i) => (
-            <div key={i} className={`chat-msg ${m.role}`}>
-              <div className="chat-role">{m.role === 'user' ? 'You' : 'Assistant'}</div>
-              <pre>{m.content}</pre>
-            </div>
-          ))}
+        <div className="reporting-compose">
+          <div className="chat-input-row reporting-input-row">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              placeholder='e.g. Show 10 open demands from input/demand/'
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') sendFreppleChat();
+              }}
+            />
+            <button type="button" className="btn primary" onClick={sendFreppleChat} disabled={chatLoading}>
+              {chatLoading ? 'Thinking…' : 'Send'}
+            </button>
+          </div>
         </div>
+        {chatErr && <p className="err">{chatErr}</p>}
+        {chatLoading && !queryResult && !chatErr && (
+          <p className="hint reporting-loading">Working on your request…</p>
+        )}
         {queryResult && (
           <div className="query-result">
             <p className="hint">
@@ -175,20 +174,6 @@ export default function App() {
             )}
           </div>
         )}
-        <div className="chat-input-row">
-          <input
-            type="text"
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-            placeholder='e.g. Show 10 open demands from input/demand/'
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') sendFreppleChat();
-            }}
-          />
-          <button type="button" className="btn primary" onClick={sendFreppleChat} disabled={chatLoading}>
-            {chatLoading ? 'Thinking…' : 'Send'}
-          </button>
-        </div>
         </section>
       )}
 

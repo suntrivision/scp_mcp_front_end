@@ -337,6 +337,18 @@ td.empty {
   min-height: 70vh;
 }
 
+.reporting-compose {
+  margin: 1rem 0 0.5rem;
+}
+
+.reporting-input-row {
+  margin-top: 0;
+}
+
+.reporting-loading {
+  margin: 0.35rem 0 0.75rem;
+}
+
 .quick-prompts {
   display: flex;
   flex-wrap: wrap;

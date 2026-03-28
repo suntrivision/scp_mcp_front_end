@@ -26,14 +26,6 @@ export default function App() {
     try {
       const data = await queryFreppleNaturalLanguage({ message: text });
       setQueryResult(data);
-      const kpiText = Object.entries(data.kpis || {})
-        .slice(0, 6)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(' | ');
-      const assistantText = [data.summary, kpiText ? `KPIs -> ${kpiText}` : '']
-        .filter(Boolean)
-        .join('\n');
-      setChatHistory((prev) => [...prev, { role: 'assistant', content: assistantText || '(no response)' }]);
     } catch (e) {
       setChatErr(e.message);
       setQueryResult(null);
@@ -78,14 +70,6 @@ export default function App() {
       try {
         const data = await queryFreppleNaturalLanguage({ message: prompt });
         setQueryResult(data);
-        const kpiText = Object.entries(data.kpis || {})
-          .slice(0, 6)
-          .map(([k, v]) => `${k}: ${v}`)
-          .join(' | ');
-        const assistantText = [data.summary, kpiText ? `KPIs -> ${kpiText}` : '']
-          .filter(Boolean)
-          .join('\n');
-        setChatHistory((prev) => [...prev, { role: 'assistant', content: assistantText || '(no response)' }]);
       } catch (e) {
         setChatErr(e.message);
         setQueryResult(null);
@@ -146,6 +130,14 @@ export default function App() {
           ))}
         </div>
         {chatErr && <p className="err">{chatErr}</p>}
+        <div className="chat-box">
+          {chatHistory.map((m, i) => (
+            <div key={i} className={`chat-msg ${m.role}`}>
+              <div className="chat-role">{m.role === 'user' ? 'You' : 'Assistant'}</div>
+              <pre>{m.content}</pre>
+            </div>
+          ))}
+        </div>
         {queryResult && (
           <div className="query-result">
             <p className="hint">
@@ -183,14 +175,6 @@ export default function App() {
             )}
           </div>
         )}
-        <div className="chat-box">
-          {chatHistory.map((m, i) => (
-            <div key={i} className={`chat-msg ${m.role}`}>
-              <div className="chat-role">{m.role === 'user' ? 'You' : 'Assistant'}</div>
-              <pre>{m.content}</pre>
-            </div>
-          ))}
-        </div>
         <div className="chat-input-row">
           <input
             type="text"
@@ -212,13 +196,6 @@ export default function App() {
 
       <footer className="footer">
         <p className="footer-copyright">Y3 © 2026</p>
-        <details className="footer-dev-hint">
-          <summary>Developer</summary>
-          <span>
-            Local dev: Vite proxies <code>/api</code> to <code>http://127.0.0.1:8787</code> · Production uses your
-            deployed API
-          </span>
-        </details>
       </footer>
     </div>
   );

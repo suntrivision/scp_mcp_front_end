@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { queryFreppleNaturalLanguage } from './tallyService.js';
 import ExceptionDashboard from './ExceptionDashboard.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
+import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
 export default function App() {
   const [view, setView] = useState('frepple');
@@ -10,8 +11,8 @@ export default function App() {
   const [chatErr, setChatErr] = useState(null);
   const [queryResult, setQueryResult] = useState(null);
 
-  const sendFreppleChat = useCallback(async () => {
-    const text = chatInput.trim();
+  const runQueryWithText = useCallback(async (message) => {
+    const text = String(message || '').trim();
     if (!text || chatLoading) return;
     setChatErr(null);
     setQueryResult(null);
@@ -26,7 +27,13 @@ export default function App() {
     } finally {
       setChatLoading(false);
     }
-  }, [chatInput, chatLoading]);
+  }, [chatLoading]);
+
+  const sendFreppleChat = useCallback(async () => {
+    const text = chatInput.trim();
+    if (!text || chatLoading) return;
+    await runQueryWithText(text);
+  }, [chatInput, chatLoading, runQueryWithText]);
 
   const quickPrompts = [
     'Show 10 open sales orders from input/demand/ with due date and delay.',
@@ -54,20 +61,9 @@ export default function App() {
   const askQuickPrompt = useCallback(
     async (prompt) => {
       if (chatLoading) return;
-      setChatErr(null);
-      setQueryResult(null);
-      setChatLoading(true);
-      try {
-        const data = await queryFreppleNaturalLanguage({ message: prompt });
-        setQueryResult(data);
-      } catch (e) {
-        setChatErr(e.message);
-        setQueryResult(null);
-      } finally {
-        setChatLoading(false);
-      }
+      await runQueryWithText(prompt);
     },
-    [chatLoading]
+    [chatLoading, runQueryWithText]
   );
 
   return (
@@ -105,6 +101,13 @@ export default function App() {
           <strong>Generate a prompt</strong> below for multi-step or cross-domain questions.
         </p>
         <PromptGenerator mode="reporting" onInsert={setChatInput} disabled={chatLoading} />
+        <QueryAgentsPanel
+          context="reporting"
+          currentQuery={chatInput}
+          disabled={chatLoading}
+          onApplyQuery={setChatInput}
+          onRunQuery={runQueryWithText}
+        />
         <div className="quick-prompts">
           {quickPrompts.map((p) => (
             <button

@@ -810,3 +810,147 @@ td.empty {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* Saved query agents (local storage) */
+.query-agents {
+  margin: 1rem 0 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.query-agents-head {
+  margin-bottom: 0.75rem;
+}
+
+.query-agents-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.query-agents-hint {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+}
+
+.query-agents-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.query-agents-empty {
+  margin: 0.35rem 0 0;
+}
+
+.query-agents-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.query-agents-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.query-agents-card-main {
+  flex: 1;
+  min-width: 200px;
+}
+
+.query-agents-card-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.35rem;
+}
+
+.query-agents-card-snippet {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.query-agents-card-meta {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.query-agents-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.query-agents-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.query-agents-modal {
+  width: min(640px, 100%);
+  max-height: min(90vh, 720px);
+  overflow: auto;
+  padding: 1.15rem 1.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.query-agents-modal-heading {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+}
+
+.query-agents-modal .field {
+  margin-bottom: 0.75rem;
+}
+
+.query-agents-modal .field input[type='text'] {
+  width: 100%;
+}
+
+.query-agents-modal-textarea {
+  width: 100%;
+  min-height: 200px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.query-agents-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}

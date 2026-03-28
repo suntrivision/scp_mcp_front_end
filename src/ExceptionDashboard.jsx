@@ -3,6 +3,7 @@ import { fetchExceptionDashboard, queryFreppleNaturalLanguage } from './tallySer
 import { EXCEPTION_DASHBOARD_PROMPT } from './freppleExceptionDashboardPrompt.js';
 import { DEMO_EXCEPTION_RESPONSE } from './exceptionDemoData.js';
 import PromptGenerator from './PromptGenerator.jsx';
+import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
 const SEVERITY_LEVEL = { High: 0, Medium: 1, Low: 2 };
 
@@ -220,9 +221,10 @@ export default function ExceptionDashboard() {
     }
   }, [applyDemo]);
 
-  const runCustomPrompt = useCallback(async () => {
-    const text = promptText.trim();
+  const runCustomPrompt = useCallback(async (overrideText) => {
+    const text = String(overrideText ?? promptText).trim();
     if (!text || promptLoading) return;
+    setPromptText(text);
     setPromptErr(null);
     setPromptLoading(true);
     setPromptReady(false);
@@ -405,6 +407,13 @@ export default function ExceptionDashboard() {
             (KPIs, filters, expandable cards).
           </p>
           <PromptGenerator mode="exception" onInsert={setPromptText} disabled={promptLoading} />
+          <QueryAgentsPanel
+            context="exception"
+            currentQuery={promptText}
+            disabled={promptLoading}
+            onApplyQuery={setPromptText}
+            onRunQuery={(body) => runCustomPrompt(body)}
+          />
           <div className="exception-prompt-editor">
             <textarea
               className="exception-prompt-textarea"
@@ -418,7 +427,12 @@ export default function ExceptionDashboard() {
               <button type="button" className="btn" onClick={loadDefaultPrompt}>
                 Load default exception prompt
               </button>
-              <button type="button" className="btn primary" onClick={runCustomPrompt} disabled={promptLoading}>
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => runCustomPrompt()}
+                disabled={promptLoading}
+              >
                 {promptLoading ? 'Running…' : 'Run prompt'}
               </button>
             </div>

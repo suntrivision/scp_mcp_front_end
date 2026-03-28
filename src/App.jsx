@@ -102,7 +102,7 @@ export default function App() {
       <header className="header">
         <div className="header-brand">
           <img className="header-logo" src="/y3-logo.png" alt="Y3" />
-          <p className="sub">Conversational analytics and exception planning via MCP</p>
+          <p className="sub">Conversational analytics and exception planning</p>
         </div>
         <div className="toolbar page-switch">
           <button

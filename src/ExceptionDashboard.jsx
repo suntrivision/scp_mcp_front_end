@@ -69,7 +69,7 @@ export function ExceptionDashboardPromptPanel() {
   }, []);
   return (
     <details className="exception-prompt-details">
-      <summary>MCP prompt (copy for Claude / backend)</summary>
+      <summary>Enter prompt</summary>
       <p className="hint">
         This is the same text sent when you refresh the dashboard. Use it in other tools or backend prompts if needed.
       </p>
@@ -140,7 +140,9 @@ export default function ExceptionDashboard() {
         <div>
           <h2>AI Exception Agent</h2>
           <p className="hint minimal-gap">
-            AI-sourced from frePPLe via MCP. Refresh to re-run tools and rebuild exception rows.
+            AI-sourced from Y3 Supply Chain.
+            <br />
+            Refresh data
           </p>
         </div>
         <button type="button" className="btn primary" onClick={load} disabled={loading}>

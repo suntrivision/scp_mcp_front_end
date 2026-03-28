@@ -76,7 +76,7 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
     [refresh]
   );
 
-  const title = context === 'reporting' ? 'Query agents (Reporting)' : 'Query agents (Exception)';
+  const title = 'Create Agents';
 
   return (
     <div className="query-agents">
@@ -98,15 +98,15 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
               setModal('create');
             }}
             disabled={disabled || !String(currentQuery || '').trim()}
-            title="Save the current query text as a new agent"
+            title="Save the current query text as an agent"
           >
-            Save current query
+            Save Agent
           </button>
         </div>
       </div>
 
       {agents.length === 0 ? (
-        <p className="hint query-agents-empty">No saved agents yet. Create one or save your current query.</p>
+        <p className="hint query-agents-empty">No saved agents yet. Create one or use Save Agent with text in the query box.</p>
       ) : (
         <ul className="query-agents-list">
           {agents.map((a) => (

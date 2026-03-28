@@ -503,6 +503,30 @@ td.empty {
   background: rgba(107, 45, 145, 0.08);
 }
 
+.query-sent {
+  margin: 0.35rem 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.query-sent-label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.query-sent-body {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 0.45rem 0.55rem;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.12);
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
 .query-summary {
   margin: 0.4rem 0 0.5rem;
   font-size: 0.92rem;

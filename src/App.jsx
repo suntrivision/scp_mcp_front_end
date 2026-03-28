@@ -10,17 +10,20 @@ export default function App() {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatErr, setChatErr] = useState(null);
   const [queryResult, setQueryResult] = useState(null);
+  const [lastQuerySent, setLastQuerySent] = useState('');
 
   const runQueryWithText = useCallback(async (message) => {
     const text = String(message || '').trim();
     if (!text || chatLoading) return;
     setChatErr(null);
     setQueryResult(null);
+    setLastQuerySent('');
     setChatLoading(true);
     setChatInput('');
     try {
       const data = await queryFreppleNaturalLanguage({ message: text });
       setQueryResult(data);
+      setLastQuerySent(text);
     } catch (e) {
       setChatErr(e.message);
       setQueryResult(null);
@@ -156,6 +159,12 @@ export default function App() {
             <p className="hint">
               Intent: <code>{queryResult.intent}</code>
             </p>
+            {queryResult.intent === 'general_query' && lastQuerySent ? (
+              <p className="query-sent">
+                <span className="query-sent-label">Query sent:</span>
+                <span className="query-sent-body">{lastQuerySent}</span>
+              </p>
+            ) : null}
             <p className="query-summary">{queryResult.summary}</p>
             {Object.keys(queryResult.kpis || {}).length > 0 && (
               <div className="kpi-wrap">

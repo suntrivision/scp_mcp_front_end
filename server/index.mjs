@@ -69,8 +69,13 @@ function detectIntent(message) {
 }
 
 function buildFreppleStructuredPrompt({ message, intent }) {
+  const isExceptionDashboard =
+    /exception_dashboard|"intent":\s*"exception_dashboard"|Build an exception dashboard/i.test(message);
+  const persona = isExceptionDashboard
+    ? 'You are a Y3 Exception Analyst.'
+    : 'You are a Y3 Planning Assistant.';
   return [
-    'You are a frePPLe planning data assistant.',
+    persona,
     'Use only frepple MCP tools to answer the user question.',
     'Respond as JSON only. No markdown fences. No extra text.',
     'When listing rows, cap at 80 rows (prioritize highest-severity exceptions first).',
@@ -217,7 +222,7 @@ app.post('/api/frepple/chat', async (req, res) => {
       return res.status(400).json({ error: 'message is required' });
     }
     const prompt = [
-      'You are a frePPLe data assistant.',
+      'You are a Y3 Planning Assistant.',
       'Use only frepple MCP tools to answer.',
       'For list requests, cap response to 20 rows.',
       'Prefer paths such as input/demand/, input/item/, input/customer/, input/location/, input/deliveryorder/.',

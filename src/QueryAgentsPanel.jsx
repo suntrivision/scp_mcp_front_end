@@ -4,7 +4,7 @@ import {
   deleteAgent,
   listAgents,
   updateAgent,
-} from './queryAgentsStorage.js';
+} from './queryAgentsApi.js';
 
 function snippet(text, max = 120) {
   const t = String(text || '').replace(/\s+/g, ' ').trim();
@@ -23,16 +23,28 @@ function snippet(text, max = 120) {
  */
 export default function QueryAgentsPanel({ context, currentQuery, disabled, onApplyQuery, onRunQuery }) {
   const [agents, setAgents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [loadErr, setLoadErr] = useState(null);
   const [modal, setModal] = useState(null);
   const [formName, setFormName] = useState('');
   const [formBody, setFormBody] = useState('');
 
-  const refresh = useCallback(() => {
-    setAgents(listAgents(context));
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setLoadErr(null);
+    try {
+      const list = await listAgents(context);
+      setAgents(list);
+    } catch (e) {
+      setLoadErr(e?.message || 'Could not load agents');
+      setAgents([]);
+    } finally {
+      setLoading(false);
+    }
   }, [context]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   const openCreate = useCallback(() => {
@@ -53,14 +65,14 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
     setFormBody('');
   }, []);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     try {
       if (modal === 'create') {
-        createAgent({ name: formName, body: formBody, context });
+        await createAgent({ name: formName, body: formBody, context });
       } else if (modal?.mode === 'edit') {
-        updateAgent(modal.id, { name: formName, body: formBody });
+        await updateAgent(modal.id, { name: formName, body: formBody });
       }
-      refresh();
+      await refresh();
       closeModal();
     } catch (e) {
       alert(e?.message || 'Could not save');
@@ -68,10 +80,14 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
   }, [modal, formName, formBody, context, refresh, closeModal]);
 
   const handleDelete = useCallback(
-    (id) => {
+    async (id) => {
       if (!window.confirm('Delete this query agent?')) return;
-      deleteAgent(id);
-      refresh();
+      try {
+        await deleteAgent(id);
+        await refresh();
+      } catch (e) {
+        alert(e?.message || 'Could not delete');
+      }
     },
     [refresh]
   );
@@ -83,7 +99,9 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
       <div className="query-agents-head">
         <h3 className="query-agents-title">{title}</h3>
         <p className="hint query-agents-hint">
-          Saved prompts are stored in this browser only (local storage). Create, edit, load, or delete agents below.
+          When <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> are set, agents are saved in your
+          Supabase <code>query_agents</code> table. Otherwise they stay in this browser (local storage). Run the SQL in{' '}
+          <code>supabase/migrations/001_query_agents.sql</code> once in the Supabase SQL editor.
         </p>
         <div className="query-agents-toolbar">
           <button type="button" className="btn primary" onClick={openCreate} disabled={disabled}>
@@ -105,7 +123,11 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
         </div>
       </div>
 
-      {agents.length === 0 ? (
+      {loadErr && <p className="err query-agents-err">{loadErr}</p>}
+
+      {loading ? (
+        <p className="hint query-agents-empty">Loading agents…</p>
+      ) : agents.length === 0 ? (
         <p className="hint query-agents-empty">No saved agents yet. Create one or use Save Agent with text in the query box.</p>
       ) : (
         <ul className="query-agents-list">

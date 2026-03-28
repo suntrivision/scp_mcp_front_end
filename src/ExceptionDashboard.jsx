@@ -419,7 +419,7 @@ export default function ExceptionDashboard() {
               className="exception-prompt-textarea"
               value={promptText}
               onChange={(e) => setPromptText(e.target.value)}
-              placeholder="Enter your prompt for the planning assistant…"
+              placeholder="Enter your prompt for the Y3 Planning Assistant…"
               rows={12}
               spellCheck={false}
             />

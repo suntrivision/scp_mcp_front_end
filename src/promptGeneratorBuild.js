@@ -38,7 +38,7 @@ export function buildGeneratedPrompt(p) {
   const outputException = `Return JSON only (no markdown) with keys: intent, summary, kpis (counts by category), rows (array of objects with item, location, root_cause_category, exception_type, severity High|Medium|Low, recommended_action, detail).`;
 
   if (p.mode === 'exception') {
-    return `You are a frePPLe exception analyst. Use MCP tools only with live data.
+    return `You are a Y3 Exception Analyst. Use MCP tools only with live data.
 
 Objective:
 ${goal}
@@ -53,7 +53,7 @@ ${outputException}
 ${extra ? `Additional instructions:\n${extra}` : ''}`.trim();
   }
 
-  return `You are a frePPLe planning assistant. Use only frePPLe MCP tools. Prefer paths such as input/demand/, forecast/forecastplan/, input/buffer/, input/deliveryorder/, input/distributionorder/, input/item/, input/customer/.
+  return `You are a Y3 Planning Assistant. Use only frePPLe MCP tools. Prefer paths such as input/demand/, forecast/forecastplan/, input/buffer/, input/deliveryorder/, input/distributionorder/, input/item/, input/customer/.
 
 Task:
 ${goal}

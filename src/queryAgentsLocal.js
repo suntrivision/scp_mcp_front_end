@@ -23,7 +23,7 @@ function newId() {
 /**
  * @param {'reporting' | 'exception'} context
  */
-export function listAgents(context) {
+export function listAgentsLocal(context) {
   return readAll()
     .filter((a) => a.context === context)
     .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
@@ -32,7 +32,7 @@ export function listAgents(context) {
 /**
  * @param {{ name: string, body: string, context: 'reporting' | 'exception' }} data
  */
-export function createAgent(data) {
+export function createAgentLocal(data) {
   const name = String(data.name || '').trim();
   const body = String(data.body || '').trim();
   if (!name) throw new Error('Name is required');
@@ -56,7 +56,7 @@ export function createAgent(data) {
  * @param {string} id
  * @param {{ name?: string, body?: string }} patch
  */
-export function updateAgent(id, patch) {
+export function updateAgentLocal(id, patch) {
   const agents = readAll();
   const i = agents.findIndex((a) => a.id === id);
   if (i < 0) throw new Error('Agent not found');
@@ -76,6 +76,6 @@ export function updateAgent(id, patch) {
 }
 
 /** @param {string} id */
-export function deleteAgent(id) {
+export function deleteAgentLocal(id) {
   writeAll(readAll().filter((a) => a.id !== id));
 }

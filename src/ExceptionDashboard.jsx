@@ -196,7 +196,10 @@ export default function ExceptionDashboard() {
           role="tab"
           aria-selected={agentTab === 'report'}
           className={`btn ${agentTab === 'report' ? 'primary' : ''}`}
-          onClick={() => setAgentTab('report')}
+          onClick={() => {
+            setAgentTab('report');
+            void loadReport();
+          }}
         >
           Exception Report
         </button>

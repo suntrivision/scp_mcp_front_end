@@ -586,15 +586,19 @@ td.empty {
 }
 
 .exception-expand-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.5rem;
+  align-content: start;
   max-height: min(68vh, 620px);
-  overflow: auto;
-  padding-right: 0.15rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .exception-expand-card {
+  display: block;
+  width: 100%;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.12);
@@ -611,9 +615,12 @@ td.empty {
   align-items: center;
   gap: 0.5rem 0.75rem;
   padding: 0.65rem 0.85rem;
+  min-height: 2.75rem;
+  box-sizing: border-box;
   cursor: pointer;
   list-style: none;
   font-size: 0.88rem;
+  width: 100%;
 }
 
 .exception-expand-summary::-webkit-details-marker {

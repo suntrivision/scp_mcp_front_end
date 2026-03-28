@@ -87,7 +87,7 @@ function ExpandableExceptionList({ rows }) {
   return (
     <div className="exception-expand-list">
       {sorted.map((row, i) => (
-        <details key={`${row.item}-${row.location}-${rowCategory(row)}-${i}`} className="exception-expand-card">
+        <details key={`exc-row-${i}`} className="exception-expand-card">
           <summary className="exception-expand-summary">
             <span className={`sev-badge ${severityClass(row.severity)}`}>{row.severity}</span>
             <span className="rc-chip">{rowCategory(row)}</span>

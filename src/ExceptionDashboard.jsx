@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { fetchExceptionDashboard, queryFreppleNaturalLanguage } from './tallyService.js';
 import { EXCEPTION_DASHBOARD_PROMPT } from './freppleExceptionDashboardPrompt.js';
 import { DEMO_EXCEPTION_RESPONSE } from './exceptionDemoData.js';
+import PromptGenerator from './PromptGenerator.jsx';
 
 const SEVERITY_LEVEL = { High: 0, Medium: 1, Low: 2 };
 
@@ -399,10 +400,11 @@ export default function ExceptionDashboard() {
       {agentTab === 'prompt' && (
         <>
           <p className="hint exception-prompt-intro">
-            Type or paste a prompt. Use &ldquo;Load default exception prompt&rdquo; for the standard exception report
-            instructions, then run or edit before sending. The dashboard below updates from the JSON returned (KPIs,
-            filters, expandable cards).
+            Type or paste a prompt. Use &ldquo;Generate a prompt&rdquo; for structured multi-step exception analyses, or
+            &ldquo;Load default exception prompt&rdquo; for the standard report. The dashboard below reflects JSON
+            (KPIs, filters, expandable cards).
           </p>
+          <PromptGenerator mode="exception" onInsert={setPromptText} disabled={promptLoading} />
           <div className="exception-prompt-editor">
             <textarea
               className="exception-prompt-textarea"

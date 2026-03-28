@@ -341,12 +341,142 @@ td.empty {
   margin: 1rem 0 0.5rem;
 }
 
+.reporting-loading {
+  margin: 0.35rem 0 0.75rem;
+}
+
+.reporting-query-label {
+  display: block;
+  width: 100%;
+}
+
+.reporting-query-label > span {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
 .reporting-input-row {
+  margin-top: 0;
+  align-items: flex-start;
+}
+
+.reporting-query-input {
+  flex: 1;
+  min-width: 260px;
+  min-height: 120px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.reporting-input-row .btn.primary {
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.prompt-generator {
+  margin: 0.75rem 0 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.75rem 0.75rem;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.prompt-generator-summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--muted);
+  list-style: none;
+  padding: 0.25rem 0;
+}
+
+.prompt-generator-summary::-webkit-details-marker {
+  display: none;
+}
+
+.prompt-generator-body {
+  padding-top: 0.5rem;
+}
+
+.prompt-generator-lead {
   margin-top: 0;
 }
 
-.reporting-loading {
+.prompt-generator .field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.prompt-generator .field > span:first-child {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.prompt-generator-textarea {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.prompt-generator-textarea-sm {
+  min-height: 3rem;
+}
+
+.prompt-generator-preview {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.prompt-generator-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.35rem 0.75rem;
+}
+
+.prompt-generator-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.prompt-generator-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 1.25rem;
+  align-items: flex-end;
+}
+
+.prompt-generator-actions {
   margin: 0.35rem 0 0.75rem;
+}
+
+.small-hint {
+  margin: -0.25rem 0 0.5rem;
+  font-size: 0.78rem;
 }
 
 .quick-prompts {

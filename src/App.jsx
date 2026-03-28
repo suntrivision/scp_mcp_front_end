@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { queryFreppleNaturalLanguage } from './tallyService.js';
 import ExceptionDashboard from './ExceptionDashboard.jsx';
+import PromptGenerator from './PromptGenerator.jsx';
 
 export default function App() {
   const [view, setView] = useState('frepple');
@@ -43,7 +44,7 @@ export default function App() {
         setChatInput(prompt);
       }, 0);
       setTimeout(() => {
-        const inputEl = document.querySelector('.chat-input-row input');
+        const inputEl = document.querySelector('.reporting-query-input');
         if (inputEl) inputEl.focus();
       }, 0);
     },
@@ -100,8 +101,10 @@ export default function App() {
           <h2>Y3 Agentic Conversation</h2>
         </div>
         <p className="hint">
-          Ask in natural language. This calls Y3 AI Reporting Agent to get information.
+          Ask in natural language. This calls Y3 AI Reporting Agent to get information. Use{' '}
+          <strong>Generate a prompt</strong> below for multi-step or cross-domain questions.
         </p>
+        <PromptGenerator mode="reporting" onInsert={setChatInput} disabled={chatLoading} />
         <div className="quick-prompts">
           {quickPrompts.map((p) => (
             <button
@@ -118,20 +121,28 @@ export default function App() {
           ))}
         </div>
         <div className="reporting-compose">
-          <div className="chat-input-row reporting-input-row">
-            <input
-              type="text"
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              placeholder='e.g. Show 10 open demands from input/demand/'
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') sendFreppleChat();
-              }}
-            />
-            <button type="button" className="btn primary" onClick={sendFreppleChat} disabled={chatLoading}>
-              {chatLoading ? 'Thinking…' : 'Send'}
-            </button>
-          </div>
+          <label className="field reporting-query-label">
+            <span>Your query</span>
+            <div className="chat-input-row reporting-input-row">
+              <textarea
+                className="reporting-query-input"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Type a question or insert a generated prompt. Use Ctrl+Enter to send."
+                rows={5}
+                disabled={chatLoading}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    sendFreppleChat();
+                  }
+                }}
+              />
+              <button type="button" className="btn primary" onClick={sendFreppleChat} disabled={chatLoading}>
+                {chatLoading ? 'Thinking…' : 'Send'}
+              </button>
+            </div>
+          </label>
         </div>
         {chatErr && <p className="err">{chatErr}</p>}
         {chatLoading && !queryResult && !chatErr && (

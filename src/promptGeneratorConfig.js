@@ -1,4 +1,4 @@
-/** Multi-select data domains for frePPLe-style queries */
+/** Multi-select data domains for Y3 planning queries */
 export const DATA_SOURCE_OPTIONS = [
   { id: 'demand', label: 'Sales orders / demands (input/demand/)' },
   { id: 'forecast', label: 'Forecast plan (forecast/forecastplan/)' },

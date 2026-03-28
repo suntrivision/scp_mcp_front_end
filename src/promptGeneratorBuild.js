@@ -21,7 +21,7 @@ export function buildGeneratedPrompt(p) {
   const sourcesBlock =
     sources.length > 0
       ? sources.map((s) => `- ${s}`).join('\n')
-      : '- Use the most relevant frePPLe MCP resources for the goal.';
+      : '- Use the most relevant Y3 MCP resources for the goal.';
 
   const limit = p.rowLimit ? `Cap detailed lists at roughly ${p.rowLimit} rows (fewer if sparse).` : '';
   const filters = String(p.filters || '').trim();
@@ -53,7 +53,7 @@ ${outputException}
 ${extra ? `Additional instructions:\n${extra}` : ''}`.trim();
   }
 
-  return `You are a Y3 Planning Assistant. Use only frePPLe MCP tools. Prefer paths such as input/demand/, forecast/forecastplan/, input/buffer/, input/deliveryorder/, input/distributionorder/, input/item/, input/customer/.
+  return `You are a Y3 Planning Assistant. Use only Y3 MCP tools. Prefer paths such as input/demand/, forecast/forecastplan/, input/buffer/, input/deliveryorder/, input/distributionorder/, input/item/, input/customer/.
 
 Task:
 ${goal}

@@ -63,7 +63,7 @@ export async function queryFreppleNaturalLanguage(opts) {
   });
   const data = await r.json().catch(() => ({}));
   if (!r.ok) {
-    throw new Error(data.error || 'frePPLe query failed');
+    throw new Error(data.error || 'Y3 query failed');
   }
   return {
     intent: data.intent || 'general_query',
@@ -76,7 +76,7 @@ export async function queryFreppleNaturalLanguage(opts) {
 }
 
 /**
- * Loads structured exception dashboard data via frePPLe MCP (same endpoint as natural language).
+ * Loads structured exception dashboard data via Y3 MCP (same endpoint as natural language).
  * @returns {Promise<{intent:string,summary:string,kpis:object,rows:object[],raw?:string,warning?:string}>}
  */
 export function fetchExceptionDashboard() {

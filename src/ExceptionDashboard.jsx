@@ -343,7 +343,7 @@ export default function ExceptionDashboard() {
           {isDemo && (
             <div className="demo-banner" role="status">
               Showing <strong>demo sample data</strong> because the live backend could not be reached or is not
-              configured. Set <code>FREPPLE_BACKEND_URL</code> on the server and redeploy to use live frePPLe data.
+              configured. Set <code>FREPPLE_BACKEND_URL</code> on the server and redeploy to use live Y3 data.
             </div>
           )}
 

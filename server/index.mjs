@@ -76,7 +76,7 @@ function buildFreppleStructuredPrompt({ message, intent }) {
     : 'You are a Y3 Planning Assistant.';
   return [
     persona,
-    'Use only frepple MCP tools to answer the user question.',
+    'Use only Y3 MCP tools to answer the user question.',
     'Respond as JSON only. No markdown fences. No extra text.',
     'When listing rows, cap at 80 rows (prioritize highest-severity exceptions first).',
     'Preferred paths include: input/demand/, input/item/, input/customer/, input/location/, input/deliveryorder/.',
@@ -223,7 +223,7 @@ app.post('/api/frepple/chat', async (req, res) => {
     }
     const prompt = [
       'You are a Y3 Planning Assistant.',
-      'Use only frepple MCP tools to answer.',
+      'Use only Y3 MCP tools to answer.',
       'For list requests, cap response to 20 rows.',
       'Prefer paths such as input/demand/, input/item/, input/customer/, input/location/, input/deliveryorder/.',
       'When returning tabular data, format as compact markdown table.',
@@ -247,7 +247,7 @@ app.post('/api/frepple/chat', async (req, res) => {
     const warn = stderr.trim() && !benignStderr ? stderr.trim() : undefined;
     res.json({ answer: stdout.trim(), ...(warn ? { warning: warn } : {}) });
   } catch (e) {
-    res.status(500).json({ error: e?.message || 'frepple chat failed' });
+    res.status(500).json({ error: e?.message || 'Y3 chat failed' });
   }
 });
 
@@ -281,7 +281,7 @@ app.post('/api/frepple/query', async (req, res) => {
       ...(warning ? { warning } : {}),
     });
   } catch (e) {
-    res.status(500).json({ error: e?.message || 'frepple query failed' });
+    res.status(500).json({ error: e?.message || 'Y3 query failed' });
   }
 });
 

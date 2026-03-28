@@ -1,7 +1,7 @@
 /** Sample data when live backend is unavailable (demo / offline). */
 export const DEMO_EXCEPTION_RESPONSE = {
   summary:
-    'Demonstration view: exceptions are illustrative. Connect your frePPLe backend (e.g. set FREPPLE_BACKEND_URL on the server) to load live planning data.',
+    'Demonstration view: exceptions are illustrative. Connect your Y3 backend (e.g. set FREPPLE_BACKEND_URL on the server) to load live planning data.',
   kpis: {
     'Supplier delay': 4,
     'Forecast miss': 2,

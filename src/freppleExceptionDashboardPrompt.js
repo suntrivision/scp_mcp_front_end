@@ -2,7 +2,7 @@
  * Default exception report instructions for `/api/frepple/query`.
  * Server may wrap this; keep JSON schema instructions intact.
  */
-export const EXCEPTION_DASHBOARD_PROMPT = `Build an exception dashboard dataset for demand planners using live data from frePPLe MCP tools where available.
+export const EXCEPTION_DASHBOARD_PROMPT = `Build an exception dashboard dataset for demand planners using live data from Y3 MCP tools where available.
 
 **Data sources to query:**
 - Sales orders / demands: input/demand/

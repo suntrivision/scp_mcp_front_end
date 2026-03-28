@@ -98,11 +98,6 @@ export default function QueryAgentsPanel({ context, currentQuery, disabled, onAp
     <div className="query-agents">
       <div className="query-agents-head">
         <h3 className="query-agents-title">{title}</h3>
-        <p className="hint query-agents-hint">
-          When <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> are set, agents are saved in your
-          Supabase <code>query_agents</code> table. Otherwise they stay in this browser (local storage). Run the SQL in{' '}
-          <code>supabase/migrations/001_query_agents.sql</code> once in the Supabase SQL editor.
-        </p>
         <div className="query-agents-toolbar">
           <button type="button" className="btn primary" onClick={openCreate} disabled={disabled}>
             New agent

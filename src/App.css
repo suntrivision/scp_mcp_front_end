@@ -388,7 +388,7 @@ td.empty {
   max-height: 260px;
 }
 
-/* Exception dashboard */
+/* AI Exception Agent (exception dashboard) */
 .exception-dashboard .minimal-gap {
   margin: 0.25rem 0 0;
 }

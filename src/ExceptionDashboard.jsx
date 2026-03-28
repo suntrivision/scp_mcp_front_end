@@ -138,7 +138,7 @@ export default function ExceptionDashboard() {
     <section className="card exception-dashboard">
       <div className="card-head">
         <div>
-          <h2>Exception dashboard</h2>
+          <h2>AI Exception Agent</h2>
           <p className="hint minimal-gap">
             AI-sourced from frePPLe via MCP. Refresh to re-run tools and rebuild exception rows.
           </p>
@@ -161,7 +161,7 @@ export default function ExceptionDashboard() {
       )}
 
       {!loading && !error && !dataReady && (
-        <p className="hint">Click &ldquo;Refresh data&rdquo; to load the exception dashboard.</p>
+        <p className="hint">Click &ldquo;Refresh data&rdquo; to refresh the AI Exception Agent.</p>
       )}
 
       {summary ? (

@@ -94,14 +94,14 @@ export default function App() {
             className={`btn ${view === 'frepple' ? 'primary' : ''}`}
             onClick={() => setView('frepple')}
           >
-            SC Trivision Assistant
+            AI Reporting Agent
           </button>
           <button
             type="button"
             className={`btn ${view === 'exceptions' ? 'primary' : ''}`}
             onClick={() => setView('exceptions')}
           >
-            Exception dashboard
+            AI Exception Agent
           </button>
         </div>
       </header>

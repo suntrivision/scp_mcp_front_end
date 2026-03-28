@@ -112,7 +112,7 @@ export default function App() {
           <h2>SC Trivision conversation</h2>
         </div>
         <p className="hint">
-          Ask in natural language. This calls Claude with your connected SC Trivision MCP server.
+          Ask in natural language. This calls Y3 AI Reporting Agent to get information.
         </p>
         <div className="quick-prompts">
           {quickPrompts.map((p) => (

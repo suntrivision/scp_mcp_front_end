@@ -211,11 +211,14 @@ export default function App() {
       {view === 'exceptions' && <ExceptionDashboard />}
 
       <footer className="footer">
-        <span>Local dev: Vite proxies </span>
-        <code>/api</code>
-        <span> to </span>
-        <code>http://127.0.0.1:8787</code>
-        <span> · Production uses your deployed API</span>
+        <p className="footer-copyright">Y3 © 2026</p>
+        <details className="footer-dev-hint">
+          <summary>Developer</summary>
+          <span>
+            Local dev: Vite proxies <code>/api</code> to <code>http://127.0.0.1:8787</code> · Production uses your
+            deployed API
+          </span>
+        </details>
       </footer>
     </div>
   );

@@ -273,6 +273,35 @@ td.empty {
   line-height: 1.6;
 }
 
+.footer-copyright {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.footer-dev-hint {
+  margin-top: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.footer-dev-hint summary {
+  cursor: pointer;
+  list-style: none;
+  color: var(--muted);
+  user-select: none;
+}
+
+.footer-dev-hint summary::-webkit-details-marker {
+  display: none;
+}
+
+.footer-dev-hint[open] summary {
+  margin-bottom: 0.35rem;
+}
+
 .footer code {
   background: var(--surface);
   padding: 0.1rem 0.35rem;

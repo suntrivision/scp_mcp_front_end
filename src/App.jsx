@@ -109,7 +109,7 @@ export default function App() {
       {view === 'frepple' && (
         <section className="card frepple-page">
         <div className="card-head">
-          <h2>SC Trivision conversation</h2>
+          <h2>Y3 Agentic Conversation</h2>
         </div>
         <p className="hint">
           Ask in natural language. This calls Y3 AI Reporting Agent to get information.

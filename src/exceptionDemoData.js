@@ -58,5 +58,10 @@ export const DEMO_EXCEPTION_RESPONSE = {
     },
   ],
   narrative:
-    'Overall, supplier delays and forecast misses are driving the most urgent risk to service levels. Start with the high-severity supplier delay lines and expedite or re-source where dock dates have slipped. Next, align consensus forecast with recent actuals for the SKUs showing forecast miss, and validate safety stock. For items below ROP without a PO, release or refresh MRP so replenishment catches up. This demo text stands in when the live API is unavailable.',
+    'Overall, supplier delays and forecast misses are driving the most urgent risk to service levels. This demo narrative stands in when the live API is unavailable.',
+  recommendations: [
+    'Triage high-severity supplier delays first; expedite or re-source where dock dates have slipped.',
+    'Align consensus forecast with recent actuals for SKUs flagged with forecast miss.',
+    'Release or refresh MRP for items below ROP with no purchase suggestion.',
+  ],
 };

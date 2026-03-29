@@ -154,55 +154,63 @@ export default function App() {
         {chatLoading && !queryResult && !chatErr && (
           <p className="hint reporting-loading">Working on your request…</p>
         )}
-        {queryResult && (
-          <div className="query-result">
-            <p className="hint">
-              Intent: <code>{queryResult.intent}</code>
-            </p>
-            {queryResult.intent === 'general_query' && lastQuerySent ? (
-              <p className="query-sent">
-                <span className="query-sent-label">Query sent:</span>
-                <span className="query-sent-body">{lastQuerySent}</span>
+        {queryResult && (() => {
+          const narrativeText =
+            String(queryResult.narrative || '').trim() || String(queryResult.summary || '').trim();
+          const recs = Array.isArray(queryResult.recommendations)
+            ? queryResult.recommendations.filter((x) => String(x || '').trim())
+            : [];
+          return (
+            <div className="query-result">
+              <p className="hint">
+                Intent: <code>{queryResult.intent}</code>
               </p>
-            ) : null}
-            <p className="query-summary">{queryResult.summary}</p>
-            {Object.keys(queryResult.kpis || {}).length > 0 && (
-              <div className="kpi-wrap">
-                {Object.entries(queryResult.kpis).map(([k, v]) => (
-                  <span key={k} className="kpi-chip">{`${k}: ${v}`}</span>
-                ))}
-              </div>
-            )}
-            {queryResult.rows?.length > 0 && (
-              <div className="table-wrap result-table">
-                <table>
-                  <thead>
-                    <tr>
-                      {Object.keys(queryResult.rows[0]).map((col) => (
-                        <th key={col}>{col}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {queryResult.rows.map((row, i) => (
-                      <tr key={i}>
+              {queryResult.intent === 'general_query' && lastQuerySent ? (
+                <p className="query-sent">
+                  <span className="query-sent-label">Query sent:</span>
+                  <span className="query-sent-body">{lastQuerySent}</span>
+                </p>
+              ) : null}
+              {Object.keys(queryResult.kpis || {}).length > 0 && (
+                <div className="kpi-wrap">
+                  {Object.entries(queryResult.kpis).map(([k, v]) => (
+                    <span key={k} className="kpi-chip">{`${k}: ${v}`}</span>
+                  ))}
+                </div>
+              )}
+              {narrativeText ? <p className="query-narrative-main">{narrativeText}</p> : null}
+              {recs.length > 0 ? (
+                <ul className="query-recommendations">
+                  {recs.map((item, i) => (
+                    <li key={i}>{String(item)}</li>
+                  ))}
+                </ul>
+              ) : null}
+              {queryResult.rows?.length > 0 && (
+                <div className="table-wrap result-table">
+                  <table>
+                    <thead>
+                      <tr>
                         {Object.keys(queryResult.rows[0]).map((col) => (
-                          <td key={`${i}-${col}`}>{String(row[col] ?? '—')}</td>
+                          <th key={col}>{col}</th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {queryResult.narrative ? (
-              <div className="query-narrative">
-                <h4 className="query-narrative-title">Insights &amp; recommendations</h4>
-                <p className="query-narrative-body">{queryResult.narrative}</p>
-              </div>
-            ) : null}
-          </div>
-        )}
+                    </thead>
+                    <tbody>
+                      {queryResult.rows.map((row, i) => (
+                        <tr key={i}>
+                          {Object.keys(queryResult.rows[0]).map((col) => (
+                            <td key={`${i}-${col}`}>{String(row[col] ?? '—')}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          );
+        })()}
         </section>
       )}
 

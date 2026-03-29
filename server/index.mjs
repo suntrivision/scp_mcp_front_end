@@ -68,6 +68,49 @@ function detectIntent(message) {
   return 'general_query';
 }
 
+/** Strip ```json ... ``` wrappers some models add around JSON. */
+function stripMarkdownFences(text) {
+  let t = String(text || '').trim();
+  if (t.startsWith('```')) {
+    const firstNl = t.indexOf('\n');
+    if (firstNl > 0) t = t.slice(firstNl + 1);
+    const endFence = t.lastIndexOf('```');
+    if (endFence > 0) t = t.slice(0, endFence).trim();
+  }
+  return t;
+}
+
+/** Main explanatory text only (`recommendations` is handled separately). */
+function extractNarrative(parsed) {
+  if (!parsed || typeof parsed !== 'object') return '';
+  const keys = ['narrative', 'Narrative', 'analysis', 'commentary', 'explanation'];
+  for (const k of keys) {
+    const v = parsed[k];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  return '';
+}
+
+/** Normalize `recommendations` to an array of strings for the UI bullet list. */
+function normalizeRecommendations(parsed) {
+  if (!parsed || typeof parsed !== 'object') return [];
+  const r = parsed.recommendations;
+  if (Array.isArray(r)) {
+    return r
+      .map((x) =>
+        typeof x === 'string' ? x.trim() : typeof x === 'number' ? String(x) : ''
+      )
+      .filter(Boolean);
+  }
+  if (typeof r === 'string' && r.trim()) {
+    return r
+      .split(/\n+/)
+      .map((s) => s.replace(/^[-*•]\s*/, '').trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 function buildFreppleStructuredPrompt({ message, intent }) {
   const isExceptionDashboard =
     /exception_dashboard|"intent":\s*"exception_dashboard"|Build an exception dashboard/i.test(message);
@@ -85,10 +128,11 @@ function buildFreppleStructuredPrompt({ message, intent }) {
     'JSON schema:',
     '{',
     '  "intent": "late_orders|availability_check|bottleneck_analysis|general_query",',
-    '  "summary": "brief headline of what you found",',
+    '  "summary": "brief headline (optional if narrative covers it)",',
     '  "kpis": { "key": "number or string" },',
-    '  "rows": [ { "column": "value" } ],',
-    '  "narrative": "required: 2-6 sentences in plain, conversational language for a planner. After reflecting on summary, KPIs, and rows, explain what the results mean, call out risks or opportunities, and give concrete recommendations or next steps."',
+    '  "narrative": "required: main explanatory paragraph in plain conversational language — what the data shows and why it matters.",',
+    '  "recommendations": ["short actionable item 1", "item 2", "..."],',
+    '  "rows": [ { "column": "value" } ]',
     '}',
     '',
     `Detected intent: ${intent}`,
@@ -97,7 +141,7 @@ function buildFreppleStructuredPrompt({ message, intent }) {
 }
 
 function parseStructuredResponse(raw, fallbackIntent) {
-  const text = String(raw || '').trim();
+  const text = stripMarkdownFences(raw);
   try {
     const parsed = JSON.parse(text);
     return {
@@ -105,8 +149,9 @@ function parseStructuredResponse(raw, fallbackIntent) {
       summary: parsed.summary || 'Response received.',
       kpis: parsed.kpis && typeof parsed.kpis === 'object' ? parsed.kpis : {},
       rows: Array.isArray(parsed.rows) ? parsed.rows : [],
-      narrative: typeof parsed.narrative === 'string' ? parsed.narrative.trim() : '',
-      raw: text,
+      narrative: extractNarrative(parsed),
+      recommendations: normalizeRecommendations(parsed),
+      raw: String(raw || '').trim(),
     };
   } catch {
     const start = text.indexOf('{');
@@ -119,8 +164,9 @@ function parseStructuredResponse(raw, fallbackIntent) {
           summary: parsed.summary || 'Response received.',
           kpis: parsed.kpis && typeof parsed.kpis === 'object' ? parsed.kpis : {},
           rows: Array.isArray(parsed.rows) ? parsed.rows : [],
-          narrative: typeof parsed.narrative === 'string' ? parsed.narrative.trim() : '',
-          raw: text,
+          narrative: extractNarrative(parsed),
+          recommendations: normalizeRecommendations(parsed),
+          raw: String(raw || '').trim(),
         };
       } catch {
         // fall through
@@ -133,6 +179,7 @@ function parseStructuredResponse(raw, fallbackIntent) {
     kpis: {},
     rows: [],
     narrative: '',
+    recommendations: [],
     raw: text,
   };
 }

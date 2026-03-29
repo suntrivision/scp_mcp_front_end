@@ -1,5 +1,35 @@
 import { EXCEPTION_DASHBOARD_PROMPT } from './freppleExceptionDashboardPrompt.js';
 
+/** Match server: models sometimes omit `narrative` or use another key (not `recommendations`). */
+function pickNarrativeField(data) {
+  if (!data || typeof data !== 'object') return '';
+  const keys = ['narrative', 'Narrative', 'analysis', 'commentary', 'explanation'];
+  for (const k of keys) {
+    const v = data[k];
+    if (typeof v === 'string' && v.trim()) return v.trim();
+  }
+  return '';
+}
+
+function normalizeRecommendationsResponse(data) {
+  if (!data || typeof data !== 'object') return [];
+  const r = data.recommendations;
+  if (Array.isArray(r)) {
+    return r
+      .map((x) =>
+        typeof x === 'string' ? x.trim() : typeof x === 'number' ? String(x) : ''
+      )
+      .filter(Boolean);
+  }
+  if (typeof r === 'string' && r.trim()) {
+    return r
+      .split(/\n+/)
+      .map((s) => s.replace(/^[-*•]\s*/, '').trim())
+      .filter(Boolean);
+  }
+  return [];
+}
+
 /**
  * Browser → Vite dev server → Express (same origin) → Tally XML on localhost:9000
  *
@@ -53,7 +83,7 @@ export async function getTrialBalance(opts) {
 
 /**
  * @param {{ message: string }} opts
- * @returns {Promise<{intent:string,summary:string,kpis:object,rows:object[],narrative?:string,raw?:string,warning?:string}>}
+ * @returns {Promise<{intent:string,summary:string,kpis:object,rows:object[],narrative?:string,recommendations?:string[],raw?:string,warning?:string}>}
  */
 export async function queryFreppleNaturalLanguage(opts) {
   const r = await fetch('/api/frepple/query', {
@@ -65,12 +95,15 @@ export async function queryFreppleNaturalLanguage(opts) {
   if (!r.ok) {
     throw new Error(data.error || 'Y3 query failed');
   }
+  const narrative = pickNarrativeField(data);
+  const recommendations = normalizeRecommendationsResponse(data);
   return {
     intent: data.intent || 'general_query',
     summary: data.summary || '',
     kpis: data.kpis || {},
     rows: Array.isArray(data.rows) ? data.rows : [],
-    narrative: typeof data.narrative === 'string' ? data.narrative : '',
+    narrative,
+    recommendations,
     raw: data.raw || '',
     warning: data.warning,
   };

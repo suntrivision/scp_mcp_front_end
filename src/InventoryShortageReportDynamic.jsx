@@ -136,8 +136,8 @@ function ErrorState({ error, onRetry }) {
         <code style={{ display:"block", fontSize:12, color:"#7f1d1d", marginBottom:16, whiteSpace:"pre-wrap", background:"#fff5f5", padding:"10px 12px", borderRadius:6 }}>{error}</code>
         <p style={{ fontSize:13, color:"#475569", marginBottom:12 }}>Common fixes:</p>
         <ul style={{ fontSize:13, color:"#475569", margin:"0 0 16px 16px", lineHeight:2 }}>
-          <li>Set <code>VITE_ANTHROPIC_KEY</code> in your <code>.env</code></li>
-          <li>Update the MCP server URL in <code>Usefreppleshortagedata.js</code></li>
+          <li>Set <code>ANTHROPIC_API_KEY</code> in Vercel (Project → Settings → Environment Variables) or in <code>.env</code> for local dev, then restart</li>
+          <li>Optional: set <code>VITE_FREPPLE_MCP_URL</code> if your MCP URL differs</li>
           <li>Ensure your frePPLe MCP server is reachable</li>
         </ul>
         <button type="button" onClick={onRetry} style={{ padding:"8px 18px", background:"#0f172a", color:"#fff", border:"none", borderRadius:7, fontSize:13, fontWeight:600, cursor:"pointer" }}>

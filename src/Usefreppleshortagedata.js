@@ -1,12 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 
-// ── Anthropic API key: set VITE_ANTHROPIC_KEY in .env (never commit real keys) ─
-// For Create React App:  process.env.REACT_APP_ANTHROPIC_KEY
-// For Vite:              import.meta.env.VITE_ANTHROPIC_KEY
-const ANTHROPIC_KEY =
-  typeof import.meta !== "undefined"
-    ? import.meta.env.VITE_ANTHROPIC_KEY
-    : process.env.REACT_APP_ANTHROPIC_KEY;
+// ── Anthropic: calls go through /api/anthropic-messages (local Express or Vercel) ─
+// so the API key stays server-side — set ANTHROPIC_API_KEY in Vercel or .env (see .env.example).
 
 // ── frePPLe MCP server (Anthropic Messages API `mcp_servers[].url`) ───────────
 // Default: Render deployment. Override with VITE_FREPPLE_MCP_URL if your MCP path differs (e.g. …/mcp or …/sse).
@@ -137,39 +132,27 @@ export function useFreppleShortageData() {
     setData(null);
 
     try {
-      const key = typeof ANTHROPIC_KEY === "string" ? ANTHROPIC_KEY.trim() : "";
-      if (!key) {
-        throw new Error(
-          "Missing Anthropic API key. Set VITE_ANTHROPIC_KEY in your project .env and restart Vite (see .env.example)."
-        );
-      }
-
-      // ── Step 1: Ask Claude to fetch + analyse frePPLe data via MCP ──────────
+      // ── Step 1: Ask Claude to fetch + analyse frePPLe data via MCP (key on server) ─
       setStatusMsg(`Connecting to MCP at ${FREPPLE_MCP_SERVER.url}…`);
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch("/api/anthropic-messages", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": key,
-          "anthropic-version": "2023-06-01",
-          // Required to use MCP servers
-          "anthropic-beta": "mcp-client-2025-04-04",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
           max_tokens: 8192,
-          // MCP server definition — Claude will use these tools to fetch frePPLe data
           mcp_servers: [FREPPLE_MCP_SERVER],
-          messages: [
-            { role: "user", content: ANALYSIS_PROMPT },
-          ],
+          messages: [{ role: "user", content: ANALYSIS_PROMPT }],
         }),
       });
 
       if (!response.ok) {
         const err = await response.json().catch(() => ({}));
-        throw new Error(err.error?.message || `API error ${response.status}`);
+        const msg =
+          (typeof err.error === "string" && err.error) ||
+          err.error?.message ||
+          `API error ${response.status}`;
+        throw new Error(msg);
       }
 
       const result = await response.json();

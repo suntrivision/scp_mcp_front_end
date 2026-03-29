@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
+import { proxyAnthropicMessages } from './anthropic-proxy.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const MCP_ROOT = process.env.TALLY_MCP_ROOT || 'C:\\mcp\\tally-prime';
@@ -196,7 +198,22 @@ async function getHandlePull() {
 
 const app = express();
 app.use(cors({ origin: true }));
-app.use(express.json());
+app.use(express.json({ limit: '4mb' }));
+
+/** Anthropic Messages API proxy — key from ANTHROPIC_API_KEY (see .env / Vercel secrets). */
+app.post('/api/anthropic-messages', async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ error: 'JSON body required' });
+    }
+    const { status, text } = await proxyAnthropicMessages(body);
+    res.status(status).type('application/json').send(text);
+  } catch (e) {
+    const code = e.statusCode || 500;
+    res.status(code).json({ error: e.message || 'Anthropic proxy error' });
+  }
+});
 
 app.get('/api/health', (_req, res) => {
   res.json({ ok: true, tallyMcpRoot: MCP_ROOT });

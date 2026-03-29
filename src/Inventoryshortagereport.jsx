@@ -69,22 +69,35 @@ const DATA = {
   ],
 };
 
+// ── Y3 theme (matches App.css / logo — deep violet surfaces) ───────────────────
+const T = {
+  text: "var(--text)",
+  muted: "var(--muted)",
+  surface: "var(--surface)",
+  surfaceLift: "rgba(142, 77, 196, 0.12)",
+  surfaceLift2: "rgba(142, 77, 196, 0.2)",
+  border: "var(--border)",
+  brand: "var(--brand)",
+  brandBright: "var(--brand-bright)",
+  track: "rgba(255, 255, 255, 0.08)",
+};
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const SEVERITY_STYLE = {
-  Critical: { bg: "#fef2f2", color: "#b91c1c", border: "#fecaca" },
-  High:     { bg: "#fffbeb", color: "#92400e", border: "#fde68a" },
-  Late:     { bg: "#fefce8", color: "#854d0e", border: "#fef08a" },
+  Critical: { bg: "rgba(248, 113, 113, 0.14)", color: "#fca5a5", border: "rgba(248, 113, 113, 0.4)" },
+  High: { bg: "rgba(245, 158, 11, 0.14)", color: "#fcd34d", border: "rgba(245, 158, 11, 0.35)" },
+  Late: { bg: "rgba(234, 179, 8, 0.12)", color: "#fde047", border: "rgba(234, 179, 8, 0.3)" },
 };
 const PRIORITY_STYLE = {
-  Urgent: { bg: "#fef2f2", color: "#b91c1c" },
-  High:   { bg: "#fffbeb", color: "#92400e" },
-  Medium: { bg: "#f0fdf4", color: "#166534" },
+  Urgent: { bg: "rgba(248, 113, 113, 0.14)", color: "#fca5a5" },
+  High: { bg: "rgba(245, 158, 11, 0.14)", color: "#fcd34d" },
+  Medium: { bg: "rgba(52, 211, 153, 0.14)", color: "#6ee7b7" },
 };
 const ROOT_CAUSE_COLOR = {
-  systemic_supplier:  "#ef4444",
-  component_shortage: "#f97316",
-  supplier_late:      "#f59e0b",
-  planning_gap:       "#3b82f6",
+  systemic_supplier: "var(--danger)",
+  component_shortage: "#fb923c",
+  supplier_late: "var(--warn)",
+  planning_gap: "var(--brand-bright)",
 };
 const ROOT_CAUSE_ICON = {
   systemic_supplier:  "⚠",
@@ -113,16 +126,18 @@ function Badge({ label, bg, color, border }) {
 
 function SectionHeader({ title }) {
   return (
-    <div style={{
-      fontSize: 11,
-      fontWeight: 700,
-      color: "#94a3b8",
-      letterSpacing: "0.1em",
-      textTransform: "uppercase",
-      borderBottom: "1px solid #e2e8f0",
-      paddingBottom: 8,
-      marginBottom: 16,
-    }}>
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        color: T.muted,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        borderBottom: `1px solid ${T.border}`,
+        paddingBottom: 8,
+        marginBottom: 16,
+      }}
+    >
       {title}
     </div>
   );
@@ -130,27 +145,37 @@ function SectionHeader({ title }) {
 
 function MetricCard({ label, value, color }) {
   return (
-    <div style={{
-      background: "#f8fafc",
-      border: "1px solid #e2e8f0",
-      borderRadius: 10,
-      padding: "16px 20px",
-      flex: 1,
-      minWidth: 130,
-    }}>
-      <div style={{ fontSize: 12, color: "#64748b", marginBottom: 6, fontWeight: 500 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: color || "#0f172a", lineHeight: 1 }}>{value}</div>
+    <div
+      style={{
+        background: T.surfaceLift,
+        border: `1px solid ${T.border}`,
+        borderRadius: "var(--radius)",
+        padding: "16px 20px",
+        flex: 1,
+        minWidth: 130,
+      }}
+    >
+      <div style={{ fontSize: 12, color: T.muted, marginBottom: 6, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: color || T.brandBright, lineHeight: 1 }}>{value}</div>
     </div>
   );
 }
 
 function DelayBar({ days, max }) {
   const pct = Math.min((days / max) * 100, 100);
-  const color = days >= 30 ? "#ef4444" : days >= 10 ? "#f59e0b" : "#eab308";
+  const color = days >= 30 ? "var(--danger)" : days >= 10 ? "var(--warn)" : "#fde047";
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{ flex: 1, height: 5, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}>
-        <div style={{ width: `${pct}%`, height: "100%", background: color, borderRadius: 99, transition: "width 0.6s ease" }} />
+      <div style={{ flex: 1, height: 5, background: T.track, borderRadius: 99, overflow: "hidden" }}>
+        <div
+          style={{
+            width: `${pct}%`,
+            height: "100%",
+            background: color,
+            borderRadius: 99,
+            transition: "width 0.6s ease",
+          }}
+        />
       </div>
       <span style={{ fontSize: 12, fontWeight: 600, color, minWidth: 42, textAlign: "right" }}>{days}d</span>
     </div>
@@ -171,39 +196,71 @@ export default function InventoryShortageReport() {
     fontWeight: 500,
     cursor: "pointer",
     border: "none",
-    background: activeTab === id ? "#0f172a" : "transparent",
-    color: activeTab === id ? "#fff" : "#64748b",
+    background: activeTab === id ? T.brand : "transparent",
+    color: activeTab === id ? "#f4eef9" : T.muted,
     transition: "all 0.15s",
   });
 
   return (
-    <div style={{
-      fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
-      maxWidth: 900,
-      margin: "0 auto",
-      padding: "28px 24px",
-      color: "#0f172a",
-      lineHeight: 1.6,
-    }}>
-
+    <div
+      className="inventory-shortage-report"
+      style={{
+        fontFamily: "'Segoe UI', system-ui, sans-serif",
+        maxWidth: 900,
+        margin: "0 auto",
+        padding: "12px 0 8px",
+        color: T.text,
+        lineHeight: 1.6,
+      }}
+    >
       {/* ── Header ── */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+          }}
+        >
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, letterSpacing: "-0.02em" }}>
+            <h1
+              style={{
+                fontSize: 22,
+                fontWeight: 700,
+                margin: 0,
+                letterSpacing: "-0.02em",
+                color: T.text,
+              }}
+            >
               Inventory Shortage Report
             </h1>
-            <p style={{ fontSize: 13, color: "#64748b", margin: "4px 0 0" }}>
+            <p style={{ fontSize: 13, color: T.muted, margin: "4px 0 0" }}>
               Y3 · Manufacturing scenario · As of 29 Mar 2026
             </p>
           </div>
-          <div style={{
-            display: "flex", alignItems: "center", gap: 6,
-            background: "#fef2f2", border: "1px solid #fecaca",
-            borderRadius: 8, padding: "6px 12px",
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#ef4444", display: "inline-block" }} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#b91c1c" }}>8 critical supply gaps</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "rgba(248, 113, 113, 0.12)",
+              border: "1px solid rgba(248, 113, 113, 0.35)",
+              borderRadius: "var(--radius)",
+              padding: "6px 12px",
+            }}
+          >
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                background: "var(--danger)",
+                display: "inline-block",
+              }}
+            />
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#fca5a5" }}>8 critical supply gaps</span>
           </div>
         </div>
       </div>
@@ -212,17 +269,28 @@ export default function InventoryShortageReport() {
       <div style={{ marginBottom: 32 }}>
         <SectionHeader title="Shortage snapshot — next 4–8 weeks" />
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <MetricCard label="Overdue purchase orders" value={snapshot.overdue_pos} color="#ef4444" />
-          <MetricCard label="Items at risk" value={snapshot.items_at_risk} color="#f59e0b" />
-          <MetricCard label="Unplanned orders" value={snapshot.unplanned_orders} color="#f59e0b" />
-          <MetricCard label="Max delay detected" value={`${snapshot.max_delay_days}d`} color="#ef4444" />
+          <MetricCard label="Overdue purchase orders" value={snapshot.overdue_pos} color="var(--danger)" />
+          <MetricCard label="Items at risk" value={snapshot.items_at_risk} color="var(--warn)" />
+          <MetricCard label="Unplanned orders" value={snapshot.unplanned_orders} color="var(--warn)" />
+          <MetricCard label="Max delay detected" value={`${snapshot.max_delay_days}d`} color="var(--danger)" />
         </div>
       </div>
 
       {/* ── Tabbed tables ── */}
       <div style={{ marginBottom: 32 }}>
         <SectionHeader title="Supply detail" />
-        <div style={{ display: "flex", gap: 4, marginBottom: 16, background: "#f1f5f9", borderRadius: 8, padding: 4, width: "fit-content" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 4,
+            marginBottom: 16,
+            background: "rgba(0, 0, 0, 0.22)",
+            border: `1px solid ${T.border}`,
+            borderRadius: "var(--radius)",
+            padding: 4,
+            width: "fit-content",
+          }}
+        >
           <button style={tabStyle("pos")} onClick={() => setActiveTab("pos")}>Delayed POs ({delayed_pos.length})</button>
           <button style={tabStyle("demand")} onClick={() => setActiveTab("demand")}>Demand at risk ({demand_at_risk.length})</button>
         </div>
@@ -232,24 +300,75 @@ export default function InventoryShortageReport() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
-                <tr style={{ background: "#f8fafc" }}>
+                <tr style={{ background: T.surfaceLift2 }}>
                   {["PO ref", "Item", "Supplier", "Qty", "Expected arrival", "Delay", "Severity"].map((h) => (
-                    <th key={h} style={{ textAlign: "left", padding: "9px 12px", fontWeight: 600, fontSize: 12, color: "#64748b", borderBottom: "1px solid #e2e8f0", whiteSpace: "nowrap" }}>{h}</th>
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: "left",
+                        padding: "9px 12px",
+                        fontWeight: 600,
+                        fontSize: 12,
+                        color: T.muted,
+                        borderBottom: `1px solid ${T.border}`,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {delayed_pos.map((po, i) => (
-                  <tr key={po.ref} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", fontWeight: 600, fontFamily: "monospace", fontSize: 12 }}>{po.ref}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", fontWeight: 500 }}>{po.item}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", color: "#475569" }}>{po.supplier}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", color: "#475569" }}>{po.qty.toLocaleString()}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", color: "#475569", whiteSpace: "nowrap" }}>{po.arrival}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", minWidth: 120 }}>
+                  <tr
+                    key={po.ref}
+                    style={{
+                      background: i % 2 === 0 ? "rgba(0, 0, 0, 0.12)" : "rgba(255, 255, 255, 0.03)",
+                    }}
+                  >
+                    <td
+                      style={{
+                        padding: "10px 12px",
+                        borderBottom: `1px solid ${T.border}`,
+                        fontWeight: 600,
+                        fontFamily: "monospace",
+                        fontSize: 12,
+                        color: T.text,
+                      }}
+                    >
+                      {po.ref}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px 12px",
+                        borderBottom: `1px solid ${T.border}`,
+                        fontWeight: 500,
+                        color: T.text,
+                      }}
+                    >
+                      {po.item}
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}`, color: T.muted }}>
+                      {po.supplier}
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}`, color: T.muted }}>
+                      {po.qty.toLocaleString()}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px 12px",
+                        borderBottom: `1px solid ${T.border}`,
+                        color: T.muted,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {po.arrival}
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}`, minWidth: 120 }}>
                       <DelayBar days={po.delay_days} max={maxDelay} />
                     </td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}` }}>
                       <Badge label={po.severity} {...SEVERITY_STYLE[po.severity]} />
                     </td>
                   </tr>
@@ -264,26 +383,84 @@ export default function InventoryShortageReport() {
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
-                <tr style={{ background: "#f8fafc" }}>
+                <tr style={{ background: T.surfaceLift2 }}>
                   {["Order", "Item", "Customer", "Due", "Qty", "Issue"].map((h) => (
-                    <th key={h} style={{ textAlign: "left", padding: "9px 12px", fontWeight: 600, fontSize: 12, color: "#64748b", borderBottom: "1px solid #e2e8f0" }}>{h}</th>
+                    <th
+                      key={h}
+                      style={{
+                        textAlign: "left",
+                        padding: "9px 12px",
+                        fontWeight: 600,
+                        fontSize: 12,
+                        color: T.muted,
+                        borderBottom: `1px solid ${T.border}`,
+                      }}
+                    >
+                      {h}
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {demand_at_risk.map((d, i) => (
-                  <tr key={d.order} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", fontWeight: 600, fontFamily: "monospace", fontSize: 12 }}>{d.order}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", fontWeight: 500 }}>{d.item}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", color: "#475569" }}>{d.customer}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", color: "#475569", whiteSpace: "nowrap" }}>{d.due}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9", color: "#475569" }}>{d.qty}</td>
-                    <td style={{ padding: "10px 12px", borderBottom: "1px solid #f1f5f9" }}>
+                  <tr
+                    key={d.order}
+                    style={{
+                      background: i % 2 === 0 ? "rgba(0, 0, 0, 0.12)" : "rgba(255, 255, 255, 0.03)",
+                    }}
+                  >
+                    <td
+                      style={{
+                        padding: "10px 12px",
+                        borderBottom: `1px solid ${T.border}`,
+                        fontWeight: 600,
+                        fontFamily: "monospace",
+                        fontSize: 12,
+                        color: T.text,
+                      }}
+                    >
+                      {d.order}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px 12px",
+                        borderBottom: `1px solid ${T.border}`,
+                        fontWeight: 500,
+                        color: T.text,
+                      }}
+                    >
+                      {d.item}
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}`, color: T.muted }}>
+                      {d.customer}
+                    </td>
+                    <td
+                      style={{
+                        padding: "10px 12px",
+                        borderBottom: `1px solid ${T.border}`,
+                        color: T.muted,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {d.due}
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}`, color: T.muted }}>
+                      {d.qty}
+                    </td>
+                    <td style={{ padding: "10px 12px", borderBottom: `1px solid ${T.border}` }}>
                       <Badge
                         label={d.issue}
-                        bg={d.issue === "No delivery planned" ? "#fef2f2" : "#fffbeb"}
-                        color={d.issue === "No delivery planned" ? "#b91c1c" : "#92400e"}
-                        border={d.issue === "No delivery planned" ? "#fecaca" : "#fde68a"}
+                        bg={
+                          d.issue === "No delivery planned"
+                            ? "rgba(248, 113, 113, 0.14)"
+                            : "rgba(245, 158, 11, 0.14)"
+                        }
+                        color={d.issue === "No delivery planned" ? "#fca5a5" : "#fcd34d"}
+                        border={
+                          d.issue === "No delivery planned"
+                            ? "rgba(248, 113, 113, 0.4)"
+                            : "rgba(245, 158, 11, 0.35)"
+                        }
                       />
                     </td>
                   </tr>
@@ -306,43 +483,57 @@ export default function InventoryShortageReport() {
                 key={i}
                 onClick={() => setExpandedRC(isOpen ? null : i)}
                 style={{
-                  background: "#fff",
-                  border: "1px solid #e2e8f0",
+                  background: T.surfaceLift,
+                  border: `1px solid ${T.border}`,
                   borderLeft: `4px solid ${barColor}`,
-                  borderRadius: "0 10px 10px 0",
+                  borderRadius: "0 var(--radius) var(--radius) 0",
                   padding: "14px 16px",
                   cursor: "pointer",
                   transition: "box-shadow 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)"}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = "none"}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.boxShadow = "0 2px 14px rgba(107, 45, 145, 0.25)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
                 <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                       <span style={{ fontSize: 14, color: barColor }}>{ROOT_CAUSE_ICON[rc.type]}</span>
-                      <span style={{ fontWeight: 600, fontSize: 14 }}>{rc.title}</span>
+                      <span style={{ fontWeight: 600, fontSize: 14, color: T.text }}>{rc.title}</span>
                     </div>
                     {isOpen && (
-                      <p style={{ fontSize: 13, color: "#475569", margin: "6px 0 10px", lineHeight: 1.6 }}>
+                      <p style={{ fontSize: 13, color: T.muted, margin: "6px 0 10px", lineHeight: 1.6 }}>
                         {rc.description}
                       </p>
                     )}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: isOpen ? 0 : 6 }}>
-                      {rc.affected_items.map(item => (
-                        <span key={item} style={{
-                          fontSize: 11, padding: "1px 7px", borderRadius: 4,
-                          background: "#f1f5f9", color: "#475569", fontWeight: 500,
-                        }}>{item}</span>
+                      {rc.affected_items.map((item) => (
+                        <span
+                          key={item}
+                          style={{
+                            fontSize: 11,
+                            padding: "1px 7px",
+                            borderRadius: 4,
+                            background: "rgba(255, 255, 255, 0.06)",
+                            border: `1px solid ${T.border}`,
+                            color: T.muted,
+                            fontWeight: 500,
+                          }}
+                        >
+                          {item}
+                        </span>
                       ))}
                     </div>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, minWidth: 90 }}>
                     <span style={{ fontSize: 12, fontWeight: 700, color: barColor }}>{rc.severity_pct}%</span>
-                    <div style={{ width: 80, height: 5, background: "#f1f5f9", borderRadius: 99, overflow: "hidden" }}>
+                    <div style={{ width: 80, height: 5, background: T.track, borderRadius: 99, overflow: "hidden" }}>
                       <div style={{ width: `${rc.severity_pct}%`, height: "100%", background: barColor, borderRadius: 99 }} />
                     </div>
-                    <span style={{ fontSize: 11, color: "#94a3b8" }}>{isOpen ? "▲ collapse" : "▼ expand"}</span>
+                    <span style={{ fontSize: 11, color: T.muted }}>{isOpen ? "▲ collapse" : "▼ expand"}</span>
                   </div>
                 </div>
               </div>
@@ -356,20 +547,37 @@ export default function InventoryShortageReport() {
         <SectionHeader title="Recommended actions" />
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {actions.map((a) => (
-            <div key={a.rank} style={{
-              display: "flex", alignItems: "flex-start", gap: 14,
-              background: "#fff", border: "1px solid #e2e8f0",
-              borderRadius: 10, padding: "13px 16px",
-            }}>
-              <div style={{
-                width: 26, height: 26, borderRadius: "50%",
-                background: "#0f172a", color: "#fff",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, fontWeight: 700, flexShrink: 0, marginTop: 1,
-              }}>
+            <div
+              key={a.rank}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 14,
+                background: T.surfaceLift,
+                border: `1px solid ${T.border}`,
+                borderRadius: "var(--radius)",
+                padding: "13px 16px",
+              }}
+            >
+              <div
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  background: `linear-gradient(145deg, ${T.brandBright}, ${T.brand})`,
+                  color: "#f4eef9",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                  marginTop: 1,
+                }}
+              >
                 {a.rank}
               </div>
-              <div style={{ flex: 1, fontSize: 13, color: "#0f172a", lineHeight: 1.6 }}>{a.action}</div>
+              <div style={{ flex: 1, fontSize: 13, color: T.text, lineHeight: 1.6 }}>{a.action}</div>
               <Badge label={a.priority} bg={PRIORITY_STYLE[a.priority].bg} color={PRIORITY_STYLE[a.priority].color} />
             </div>
           ))}
@@ -377,7 +585,16 @@ export default function InventoryShortageReport() {
       </div>
 
       {/* ── Footer ── */}
-      <div style={{ marginTop: 32, paddingTop: 16, borderTop: "1px solid #e2e8f0", fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
+      <div
+        style={{
+          marginTop: 32,
+          paddingTop: 16,
+          borderTop: `1px solid ${T.border}`,
+          fontSize: 12,
+          color: T.muted,
+          textAlign: "center",
+        }}
+      >
         Y3 planning · Manufacturing scenario · Sample data · 29 Mar 2026
       </div>
     </div>

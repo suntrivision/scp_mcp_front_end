@@ -12,6 +12,23 @@ export function getAnthropicApiKey() {
 }
 
 /**
+ * Optional Bearer for remote MCP (set FREPPLE_MCP_AUTHORIZATION_TOKEN on Vercel / .env — not VITE_*).
+ */
+function injectFreppleMcpAuth(body) {
+  if (!body || typeof body !== "object") return body;
+  const token = process.env.FREPPLE_MCP_AUTHORIZATION_TOKEN?.trim();
+  if (!token || !Array.isArray(body.mcp_servers)) return body;
+  return {
+    ...body,
+    mcp_servers: body.mcp_servers.map((s) =>
+      s && s.name === "frepple" && !s.authorization_token
+        ? { ...s, authorization_token: token }
+        : s
+    ),
+  };
+}
+
+/**
  * Forward a Messages API request body to Anthropic (MCP + tools supported).
  * @returns {{ status: number, text: string }}
  */
@@ -25,15 +42,17 @@ export async function proxyAnthropicMessages(body) {
     throw err;
   }
 
+  const payload = injectFreppleMcpAuth(body);
+
   const r = await fetch(ANTHROPIC_MESSAGES_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "x-api-key": key,
       "anthropic-version": "2023-06-01",
-      "anthropic-beta": "mcp-client-2025-04-04",
+      "anthropic-beta": "mcp-client-2025-11-20",
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify(payload),
   });
 
   const text = await r.text();

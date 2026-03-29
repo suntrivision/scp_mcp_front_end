@@ -137,8 +137,9 @@ function ErrorState({ error, onRetry }) {
         <p style={{ fontSize:13, color:"#475569", marginBottom:12 }}>Common fixes:</p>
         <ul style={{ fontSize:13, color:"#475569", margin:"0 0 16px 16px", lineHeight:2 }}>
           <li>Set <code>ANTHROPIC_API_KEY</code> in Vercel (Project → Settings → Environment Variables) or in <code>.env</code> for local dev, then restart</li>
-          <li>Optional: set <code>VITE_FREPPLE_MCP_URL</code> if your MCP URL differs</li>
-          <li>Ensure your frePPLe MCP server is reachable</li>
+          <li>Set <code>FREPPLE_BACKEND_URL</code> or <code>VITE_FREPPLE_MCP_URL</code> (MCP path often ends in <code>/sse</code>)</li>
+          <li>If the MCP requires auth, set <code>FREPPLE_MCP_AUTHORIZATION_TOKEN</code> on Vercel / in <code>.env</code> for the API (not <code>VITE_*</code>)</li>
+          <li>Ensure the MCP host is reachable from the public internet (Anthropic connects to it)</li>
         </ul>
         <button type="button" onClick={onRetry} style={{ padding:"8px 18px", background:"#0f172a", color:"#fff", border:"none", borderRadius:7, fontSize:13, fontWeight:600, cursor:"pointer" }}>
           ↻ Retry

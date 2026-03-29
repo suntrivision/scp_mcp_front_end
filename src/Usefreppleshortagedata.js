@@ -4,16 +4,22 @@ import { useState, useCallback, useEffect } from "react";
 // so the API key stays server-side — set ANTHROPIC_API_KEY in Vercel or .env (see .env.example).
 
 // ── frePPLe MCP server (Anthropic Messages API `mcp_servers[].url`) ───────────
-// Default: Render deployment. Override with VITE_FREPPLE_MCP_URL if your MCP path differs (e.g. …/mcp or …/sse).
+// Resolved in vite.config.js: VITE_FREPPLE_MCP_URL → else FREPPLE_BACKEND_URL → default host.
 const FREPPLE_MCP_URL_RAW =
-  typeof import.meta !== "undefined" && import.meta.env.VITE_FREPPLE_MCP_URL
-    ? String(import.meta.env.VITE_FREPPLE_MCP_URL).trim()
-    : "https://agenticshop-frepple-numm.onrender.com";
+  String(
+    typeof import.meta !== "undefined" ? import.meta.env.VITE_FREPPLE_MCP_URL || "" : ""
+  ).trim() || "https://agenticshop-frepple-numm.onrender.com";
 
 const FREPPLE_MCP_SERVER = {
   type: "url",
   url: FREPPLE_MCP_URL_RAW.replace(/\/+$/, ""),
   name: "frepple",
+};
+
+/** Required by MCP connector (mcp-client-2025-11-20): each mcp_servers entry needs a matching toolset. */
+const FREPPLE_MCP_TOOLSET = {
+  type: "mcp_toolset",
+  mcp_server_name: "frepple",
 };
 
 // ── The analysis prompt ───────────────────────────────────────────────────────
@@ -142,6 +148,7 @@ export function useFreppleShortageData() {
           model: "claude-sonnet-4-6",
           max_tokens: 8192,
           mcp_servers: [FREPPLE_MCP_SERVER],
+          tools: [FREPPLE_MCP_TOOLSET],
           messages: [{ role: "user", content: ANALYSIS_PROMPT }],
         }),
       });
@@ -160,14 +167,29 @@ export function useFreppleShortageData() {
       // ── Step 2: Extract the JSON text from Claude's response ─────────────────
       setStatusMsg("Parsing results...");
 
-      // Claude may return multiple content blocks (tool_use, tool_result, text).
-      // We want the final text block which contains the JSON.
-      const textBlock = result.content
-        .filter((b) => b.type === "text")
-        .pop();
+      if (result.error) {
+        const e = result.error;
+        throw new Error(
+          typeof e === "string" ? e : e.message || e.type || JSON.stringify(e)
+        );
+      }
+
+      const blocks = Array.isArray(result.content) ? result.content : [];
+      const mcpErr = blocks.find(
+        (b) => b.type === "mcp_tool_result" && b.is_error
+      );
+      if (mcpErr?.content?.length) {
+        const t = mcpErr.content.find((c) => c.type === "text")?.text;
+        if (t) throw new Error(t);
+      }
+
+      // Final assistant text (after MCP tool rounds) holds the JSON report.
+      const textBlock = blocks.filter((b) => b.type === "text").pop();
 
       if (!textBlock) {
-        throw new Error("Claude returned no text. Check your MCP server URL and API key.");
+        throw new Error(
+          "Claude returned no text after MCP steps. Check VITE_FREPPLE_MCP_URL (often must include the MCP path, e.g. …/sse) and that your MCP server is running."
+        );
       }
 
       // Strip any accidental markdown fences Claude may have added

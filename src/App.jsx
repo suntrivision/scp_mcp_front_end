@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
 import { queryFreppleNaturalLanguage } from './tallyService.js';
 import ExceptionDashboard from './ExceptionDashboard.jsx';
-import InventoryShortageReport from './Inventoryshortagereport.jsx';
+import InventoryShortageReport from './Inventoryshortagereportold.jsx';
+import DynamicInventoryShortageReport from './InventoryShortageReportDynamic.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
@@ -98,6 +99,13 @@ export default function App() {
             onClick={() => setView('inventory')}
           >
             Inventory Shortage Agent
+          </button>
+          <button
+            type="button"
+            className={`btn ${view === 'inventory-dynamic' ? 'primary' : ''}`}
+            onClick={() => setView('inventory-dynamic')}
+          >
+            Dynamic Inventory Shortage Agent
           </button>
         </div>
       </header>
@@ -227,6 +235,12 @@ export default function App() {
       {view === 'inventory' && (
         <section className="card inventory-shortage-page">
           <InventoryShortageReport />
+        </section>
+      )}
+
+      {view === 'inventory-dynamic' && (
+        <section className="card inventory-shortage-page inventory-shortage-dynamic">
+          <DynamicInventoryShortageReport />
         </section>
       )}
 

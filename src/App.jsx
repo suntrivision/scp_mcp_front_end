@@ -97,7 +97,7 @@ export default function App() {
             className={`btn ${view === 'inventory' ? 'primary' : ''}`}
             onClick={() => setView('inventory')}
           >
-            Inventory Shortage
+            Inventory Shortage Agent
           </button>
         </div>
       </header>

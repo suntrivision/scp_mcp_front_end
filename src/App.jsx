@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { queryFreppleNaturalLanguage } from './tallyService.js';
 import ExceptionDashboard from './ExceptionDashboard.jsx';
+import InventoryShortageReport from './Inventoryshortagereport.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
@@ -90,6 +91,13 @@ export default function App() {
             onClick={() => setView('exceptions')}
           >
             AI Exception Agent
+          </button>
+          <button
+            type="button"
+            className={`btn ${view === 'inventory' ? 'primary' : ''}`}
+            onClick={() => setView('inventory')}
+          >
+            Inventory Shortage
           </button>
         </div>
       </header>
@@ -215,6 +223,12 @@ export default function App() {
       )}
 
       {view === 'exceptions' && <ExceptionDashboard />}
+
+      {view === 'inventory' && (
+        <section className="card inventory-shortage-page">
+          <InventoryShortageReport />
+        </section>
+      )}
 
       <footer className="footer">
         <p className="footer-copyright">Y3 © 2026</p>

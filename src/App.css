@@ -139,6 +139,10 @@ input[type='date'] {
   margin-bottom: 1.25rem;
 }
 
+.inventory-shortage-page {
+  overflow-x: auto;
+}
+
 .card-head {
   display: flex;
   flex-wrap: wrap;

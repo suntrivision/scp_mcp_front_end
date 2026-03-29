@@ -11,6 +11,12 @@ function pickNarrativeField(data) {
   return '';
 }
 
+/** Replace frePPLe / Frepple (any common spelling) with Y3 in narrative text from models. */
+function replaceFreppleWithY3InNarrative(text) {
+  if (typeof text !== 'string' || !text) return text;
+  return text.replace(/\bfre+pple\b/gi, 'Y3');
+}
+
 function normalizeRecommendationsResponse(data) {
   if (!data || typeof data !== 'object') return [];
   const r = data.recommendations;
@@ -95,11 +101,16 @@ export async function queryFreppleNaturalLanguage(opts) {
   if (!r.ok) {
     throw new Error(data.error || 'Y3 query failed');
   }
-  const narrative = pickNarrativeField(data);
+  const narrativeRaw = pickNarrativeField(data);
+  const narrative = narrativeRaw ? replaceFreppleWithY3InNarrative(narrativeRaw) : '';
   const recommendations = normalizeRecommendationsResponse(data);
+  const summary =
+    data.summary == null || data.summary === ''
+      ? ''
+      : replaceFreppleWithY3InNarrative(String(data.summary));
   return {
     intent: data.intent || 'general_query',
-    summary: data.summary || '',
+    summary,
     kpis: data.kpis || {},
     rows: Array.isArray(data.rows) ? data.rows : [],
     narrative,

@@ -12,11 +12,18 @@ export function getAnthropicApiKey() {
 }
 
 /**
- * Optional Bearer for remote MCP (set FREPPLE_MCP_AUTHORIZATION_TOKEN on Vercel / .env — not VITE_*).
+ * Bearer token Anthropic sends to the remote MCP as `authorization_token` (see MCP connector docs).
+ * Use FREPPLE_MCP_AUTHORIZATION_TOKEN, or FREPPLE_TOKEN if you already use that name (same value).
  */
+function getFreppleMcpAuthorizationToken() {
+  const a = process.env.FREPPLE_MCP_AUTHORIZATION_TOKEN;
+  const b = process.env.FREPPLE_TOKEN;
+  return (typeof a === "string" && a.trim()) || (typeof b === "string" && b.trim()) || "";
+}
+
 function injectFreppleMcpAuth(body) {
   if (!body || typeof body !== "object") return body;
-  const token = process.env.FREPPLE_MCP_AUTHORIZATION_TOKEN?.trim();
+  const token = getFreppleMcpAuthorizationToken();
   if (!token || !Array.isArray(body.mcp_servers)) return body;
   return {
     ...body,

@@ -4,15 +4,16 @@ This project can be deployed to Vercel for web access, but the frePPLe MCP logic
 
 ## Architecture in production
 
-- Vercel hosts the React app and `/api/frepple/query` serverless endpoint.
+- Vercel hosts the React app and `/api/frepple/*` serverless endpoints (`query`, `inventory-shortage`, …).
 - Vercel endpoint proxies requests to your backend URL via `FREPPLE_BACKEND_URL`.
 - Your backend (current `server/index.mjs`) remains where Claude + MCP + frePPLe are installed.
 
 ## 1) Make your backend publicly reachable
 
-Your backend must expose:
+Your backend must expose (same Claude + Y3 MCP stack as local `server/index.mjs`):
 
 - `POST /api/frepple/query`
+- `POST /api/frepple/inventory-shortage` (Dynamic Inventory Shortage Agent)
 
 Examples:
 

@@ -1,113 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
 
-// ── Anthropic: calls go through /api/anthropic-messages (local Express or Vercel) ─
-// so the API key stays server-side — set ANTHROPIC_API_KEY in Vercel or .env (see .env.example).
-
-// ── frePPLe MCP server (Anthropic Messages API `mcp_servers[].url`) ───────────
-// Resolved in vite.config.js: VITE_FREPPLE_MCP_URL → else FREPPLE_BACKEND_URL → default host.
-const FREPPLE_MCP_URL_RAW =
-  String(
-    typeof import.meta !== "undefined" ? import.meta.env.VITE_FREPPLE_MCP_URL || "" : ""
-  ).trim() || "https://agenticshop-frepple-numm.onrender.com";
-
-const FREPPLE_MCP_SERVER = {
-  type: "url",
-  url: FREPPLE_MCP_URL_RAW.replace(/\/+$/, ""),
-  name: "frepple",
-};
-
-/** Required by MCP connector (mcp-client-2025-11-20): each mcp_servers entry needs a matching toolset. */
-const FREPPLE_MCP_TOOLSET = {
-  type: "mcp_toolset",
-  mcp_server_name: "frepple",
-};
-
-// ── The analysis prompt ───────────────────────────────────────────────────────
-// Claude fetches from frePPLe via MCP, parses the raw data,
-// and returns a clean JSON object matching the shape the report expects.
-const ANALYSIS_PROMPT = `
-You are a supply chain analyst. Using the frePPLe MCP tools, fetch and analyse
-inventory shortage data. Run these three tool calls:
-
-1. frepple_get_named: endpoint="purchase_orders", format="json", limit=100
-2. frepple_get_named: endpoint="sales_orders", format="json", limit=100
-3. frepple_get_named: endpoint="manufacturing_production_orders", format="json", limit=50
-
-Then analyse the results and return ONLY a valid JSON object — no markdown, no
-explanation, no code fences — in exactly this shape:
-
-{
-  "snapshot": {
-    "overdue_pos": <integer — count of POs where delay is not null/zero>,
-    "items_at_risk": <integer — distinct item names in delayed POs>,
-    "unplanned_orders": <integer — sales orders where plannedquantity is null>,
-    "max_delay_days": <number — highest delay converted to days, 1 decimal>
-  },
-  "delayed_pos": [
-    {
-      "ref": "string",
-      "item": "string",
-      "supplier": "string",
-      "qty": <number>,
-      "arrival": "DD MMM YYYY",
-      "delay_days": <number, 1 decimal>,
-      "severity": "Critical|High|Late",
-      "pegged_demands": ["string"]
-    }
-  ],
-  "demand_at_risk": [
-    {
-      "order": "string",
-      "item": "string",
-      "customer": "string",
-      "due": "string",
-      "qty": <number or "Multiple">,
-      "issue": "string"
-    }
-  ],
-  "root_causes": [
-    {
-      "title": "string",
-      "description": "string",
-      "affected_items": ["string"],
-      "severity_pct": <0-100>,
-      "type": "supplier_late|planning_gap|component_shortage|systemic_supplier"
-    }
-  ],
-  "actions": [
-    {
-      "rank": <integer>,
-      "action": "string",
-      "priority": "Urgent|High|Medium"
-    }
-  ]
-}
-
-Rules for parsing the frePPLe delay field (it comes as a duration string):
-- "37 08:00:00"  → 37.3 days   (positive = delayed, INCLUDE)
-- "-18 22:00:00" → negative    (early, EXCLUDE from delayed list)
-- "00:00:00"     → 0           (on time, EXCLUDE)
-- "3 16:00:00"   → 3.7 days
-
-Severity rules:
-- delay_days > 30  → "Critical"
-- delay_days 10-30 → "High"
-- delay_days > 0   → "Late"
-
-Root cause derivation:
-- confirmed PO (status="confirmed") with delay > 0             → type: "supplier_late"
-- sales order with null plannedquantity or null deliverydate   → type: "planning_gap"
-- same supplier on 3+ delayed POs                              → type: "systemic_supplier"
-- same item in pegging of 3+ delayed POs                      → type: "component_shortage"
-
-severity_pct should reflect relative impact (100 = worst issue found).
-Sort delayed_pos by delay_days descending.
-Sort actions by priority (Urgent first).
-Return ONLY the raw JSON object. Nothing else.
-`;
+// ── Dynamic Inventory Shortage: same path as AI Reporting Agent ───────────────
+// POST /api/frepple/inventory-shortage → local Express or Vercel → FREPPLE_BACKEND_URL
+// Claude CLI + Y3 MCP (no Anthropic remote MCP URL in the browser).
 
 // ── Helper: parse frePPLe delay string → decimal days ────────────────────────
-// (Used as a fallback if Claude's output needs validation)
 export function parseDelayDays(delayStr) {
   if (!delayStr || delayStr === "00:00:00") return 0;
   const isNeg = delayStr.startsWith("-");
@@ -125,7 +22,6 @@ export function parseDelayDays(delayStr) {
   return isNeg ? -days : Math.round(days * 10) / 10;
 }
 
-// ── Main hook ─────────────────────────────────────────────────────────────────
 export function useFreppleShortageData() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -138,75 +34,42 @@ export function useFreppleShortageData() {
     setData(null);
 
     try {
-      // ── Step 1: Ask Claude to fetch + analyse frePPLe data via MCP (key on server) ─
-      setStatusMsg(`Connecting to MCP at ${FREPPLE_MCP_SERVER.url}…`);
+      setStatusMsg("Running inventory shortage analysis (Y3 MCP via backend)…");
 
-      const response = await fetch("/api/anthropic-messages", {
+      const response = await fetch("/api/frepple/inventory-shortage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-6",
-          max_tokens: 8192,
-          mcp_servers: [FREPPLE_MCP_SERVER],
-          tools: [FREPPLE_MCP_TOOLSET],
-          messages: [{ role: "user", content: ANALYSIS_PROMPT }],
-        }),
+        body: "{}",
       });
 
+      const payload = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
         const msg =
-          (typeof err.error === "string" && err.error) ||
-          err.error?.message ||
-          `API error ${response.status}`;
+          typeof payload.error === "string"
+            ? payload.error
+            : payload.error?.message || `Request failed (${response.status})`;
         throw new Error(msg);
       }
 
-      const result = await response.json();
-
-      // ── Step 2: Extract the JSON text from Claude's response ─────────────────
-      setStatusMsg("Parsing results...");
-
-      if (result.error) {
-        const e = result.error;
-        throw new Error(
-          typeof e === "string" ? e : e.message || e.type || JSON.stringify(e)
-        );
+      if (payload.error) {
+        const e = payload.error;
+        throw new Error(typeof e === "string" ? e : e.message || JSON.stringify(e));
       }
 
-      const blocks = Array.isArray(result.content) ? result.content : [];
-      const mcpErr = blocks.find(
-        (b) => b.type === "mcp_tool_result" && b.is_error
-      );
-      if (mcpErr?.content?.length) {
-        const t = mcpErr.content.find((c) => c.type === "text")?.text;
-        if (t) throw new Error(t);
+      const report = payload.data;
+      if (!report || typeof report !== "object") {
+        throw new Error("Invalid response: expected { data: { … } } from backend");
       }
 
-      // Final assistant text (after MCP tool rounds) holds the JSON report.
-      const textBlock = blocks.filter((b) => b.type === "text").pop();
+      setStatusMsg("Parsing results…");
 
-      if (!textBlock) {
-        throw new Error(
-          "Claude returned no text after MCP steps. Check VITE_FREPPLE_MCP_URL (often must include the MCP path, e.g. …/sse) and that your MCP server is running."
-        );
-      }
-
-      // Strip any accidental markdown fences Claude may have added
-      const rawJson = textBlock.text
-        .replace(/^```(?:json)?\n?/m, "")
-        .replace(/\n?```$/m, "")
-        .trim();
-
-      const parsed = JSON.parse(rawJson);
-
-      // ── Step 3: Basic validation ──────────────────────────────────────────────
       const required = ["snapshot", "delayed_pos", "demand_at_risk", "root_causes", "actions"];
       for (const key of required) {
-        if (!parsed[key]) throw new Error(`Missing field: ${key}`);
+        if (!report[key]) throw new Error(`Missing field: ${key}`);
       }
 
-      setData(parsed);
+      setData(report);
       setStatusMsg("");
     } catch (e) {
       setError(e.message || "Unknown error");

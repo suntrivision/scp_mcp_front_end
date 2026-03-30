@@ -6,6 +6,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { proxyAnthropicMessages } from './anthropic-proxy.mjs';
+import { FREPPLE_INVENTORY_SHORTAGE_PROMPT } from './frepple-inventory-shortage-prompt.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const MCP_ROOT = process.env.TALLY_MCP_ROOT || 'C:\\mcp\\tally-prime';
@@ -140,6 +141,28 @@ function buildFreppleStructuredPrompt({ message, intent }) {
     `Detected intent: ${intent}`,
     `User question: ${message}`,
   ].join('\n');
+}
+
+/** Parse JSON report for Dynamic Inventory Shortage (same Claude+MCP path as /api/frepple/query). */
+function parseInventoryShortageJson(raw) {
+  const text = stripMarkdownFences(String(raw || ''));
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      parsed = JSON.parse(text.slice(start, end + 1));
+    } else {
+      throw new Error('Could not parse inventory shortage JSON from Claude output');
+    }
+  }
+  const required = ['snapshot', 'delayed_pos', 'demand_at_risk', 'root_causes', 'actions'];
+  for (const key of required) {
+    if (!parsed[key]) throw new Error(`Missing field: ${key}`);
+  }
+  return parsed;
 }
 
 function parseStructuredResponse(raw, fallbackIntent) {
@@ -350,6 +373,32 @@ app.post('/api/frepple/query', async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({ error: e?.message || 'Y3 query failed' });
+  }
+});
+
+/** Dynamic Inventory Shortage — same transport as /api/frepple/query (Claude CLI + Y3 MCP). */
+app.post('/api/frepple/inventory-shortage', async (req, res) => {
+  try {
+    const claudeBin = resolveClaudeExecutable();
+    const { code, stdout, stderr } = await runClaudePrintMode(
+      claudeBin,
+      ['--dangerously-skip-permissions', '-p', FREPPLE_INVENTORY_SHORTAGE_PROMPT.trim()],
+      CLAUDE_WORKDIR,
+      120000
+    );
+    if (!stdout.trim()) {
+      const msg =
+        stderr.trim() ||
+        (code !== 0 ? `Claude exited with code ${code}` : 'Empty response from Claude');
+      return res.status(500).json({ error: msg });
+    }
+    const data = parseInventoryShortageJson(stdout);
+    const benignStderr =
+      /no stdin data received/i.test(stderr) || /proceeding without it/i.test(stderr);
+    const warning = stderr.trim() && !benignStderr ? stderr.trim() : undefined;
+    res.json({ data, ...(warning ? { warning } : {}) });
+  } catch (e) {
+    res.status(500).json({ error: e?.message || 'Inventory shortage analysis failed' });
   }
 });
 

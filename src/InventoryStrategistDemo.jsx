@@ -479,7 +479,7 @@ export default function InventoryStrategistDemo() {
             Inventory Strategist — Stockout Risk
           </div>
           <div style={{ fontSize: 12, color: Y3.muted, marginTop: 2 }}>
-            frePPLe live data · 30 Mar 2026 · 19 buffers · 4 locations
+            Y3 live data · 30 Mar 2026 · 19 buffers · 4 locations
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -636,7 +636,7 @@ export default function InventoryStrategistDemo() {
             letterSpacing: "0.04em",
           }}
         >
-          Inventory Strategist Agent · frePPLe MCP · Analysis date: 30 Mar 2026
+          Inventory Strategy Agent · frePPLe MCP · Analysis date: 30 Mar 2026
         </div>
       </div>
     </div>

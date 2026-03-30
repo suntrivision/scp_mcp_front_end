@@ -222,12 +222,33 @@ function ErrorState({ error, onRetry }) {
   );
 }
 
+/** True when live API returned a valid report but counts/tables are empty — usually no delays in frePPLe scope or empty MCP data. */
+function isLikelyEmptyLiveShortage(data, isLive) {
+  if (!isLive || !data?.snapshot) return false;
+  const s = data.snapshot;
+  const z = (n) => n == null || Number(n) === 0;
+  const noRows =
+    (!Array.isArray(data.delayed_pos) || data.delayed_pos.length === 0) &&
+    (!Array.isArray(data.demand_at_risk) || data.demand_at_risk.length === 0);
+  return (
+    noRows &&
+    z(s.overdue_pos) &&
+    z(s.items_at_risk) &&
+    z(s.unplanned_orders) &&
+    z(s.max_delay_days)
+  );
+}
+
 // ── The actual report view (pure, receives data as prop) ──────────────────────
-function ReportView({ data }) {
+function ReportView({ data, isLive }) {
   const [expandedRC, setExpandedRC] = useState(null);
   const [activeTab, setActiveTab]   = useState("pos");
   const { snapshot, delayed_pos, demand_at_risk, root_causes, actions } = data;
-  const maxDelay = Math.max(...delayed_pos.map(p => p.delay_days), 1);
+  const maxDelay = delayed_pos.length
+    ? Math.max(...delayed_pos.map((p) => p.delay_days), 1)
+    : 1;
+  const sourceLabel = isLive ? "Live data" : "Sample data";
+  const showEmptyLiveHint = isLikelyEmptyLiveShortage(data, isLive);
 
   const tabStyle = (id) => ({
     padding:"7px 16px", borderRadius:6, fontSize:13, fontWeight:500,
@@ -245,7 +266,7 @@ function ReportView({ data }) {
         <div>
           <h1 style={{ fontSize:22, fontWeight:700, margin:0, letterSpacing:"-0.02em" }}>Inventory Shortage Report</h1>
           <p style={{ fontSize:13, color:"#64748b", margin:"4px 0 0" }}>
-            Y3 · Live data · {new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"})}
+            Y3 · {sourceLabel} · {new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"})}
           </p>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, background:"#fef2f2", border:"1px solid #fecaca", borderRadius:8, padding:"6px 12px" }}>
@@ -253,6 +274,24 @@ function ReportView({ data }) {
           <span style={{ fontSize:12, fontWeight:600, color:"#b91c1c" }}>{snapshot.overdue_pos} overdue purchase orders</span>
         </div>
       </div>
+
+      {showEmptyLiveHint && (
+        <div
+          style={{
+            background:"#eff6ff",
+            border:"1px solid #bfdbfe",
+            borderRadius:10,
+            padding:"12px 16px",
+            marginBottom:24,
+            fontSize:13,
+            color:"#1e40af",
+            lineHeight:1.55,
+          }}
+        >
+          <strong style={{ display:"block", marginBottom:6 }}>No shortage rows in this run</strong>
+          The API returned a valid report, but all counts are zero and the PO / demand tables are empty. That usually means either (1) your Y3/frePPLe plan has no delayed POs or at‑risk demand in the queried data, (2) the purchase/sales/MO endpoints returned no rows, or (3) the backend could not reach live planning data. Check frePPLe for open delayed orders and review Claude/MCP logs on the server that runs POST /api/frepple/query.
+        </div>
+      )}
 
       {/* ── Metrics ── */}
       <div style={{ marginBottom:32 }}>
@@ -398,7 +437,7 @@ function ReportView({ data }) {
       </div>
 
       <div style={{ marginTop:32, paddingTop:16, borderTop:"1px solid #e2e8f0", fontSize:12, color:"#94a3b8", textAlign:"center" }}>
-        Y3 · Live data · {new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"})}
+        Y3 · {sourceLabel} · {new Date().toLocaleDateString("en-AU",{day:"numeric",month:"short",year:"numeric"})}
       </div>
     </div>
   );
@@ -450,7 +489,7 @@ export default function DynamicInventoryShortageReport() {
         </button>
       </div>
 
-      <ReportView data={displayData} />
+      <ReportView data={displayData} isLive={isLive} />
     </>
   );
 }

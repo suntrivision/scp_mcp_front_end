@@ -155,6 +155,17 @@ const HEALTHY = [
   { item: "Chair leg / Table leg", detail: "Factory 30 / 40 · no near-term risk" },
 ];
 
+const Y3 = {
+  brand: "#6b2d91",
+  brandBright: "#8e4dc4",
+  brandDim: "#4a1f68",
+  bg: "#100818",
+  surface: "#1c1028",
+  border: "#3d2858",
+  text: "#f4eef9",
+  muted: "#b8a3c9",
+};
+
 // ─── Colour helpers ─────────────────────────────────────────────────────────
 const SEV = {
   critical: {
@@ -192,14 +203,15 @@ function KpiCard({ label, value, color }) {
   return (
     <div
       style={{
-        background: "#f9fafb",
+        background: "rgba(142, 77, 196, 0.12)",
+        border: `1px solid ${Y3.border}`,
         borderRadius: 10,
         padding: "12px 16px",
         flex: "1 1 100px",
         minWidth: 90,
       }}
     >
-      <div style={{ fontSize: 11, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
+      <div style={{ fontSize: 11, color: Y3.muted, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>
         {label}
       </div>
       <div style={{ fontSize: 24, fontWeight: 700, color }}>{value}</div>
@@ -212,9 +224,9 @@ function FilterBtn({ label, active, onClick }) {
     <button
       onClick={onClick}
       style={{
-        background: active ? "#1e293b" : "#f1f5f9",
-        color: active ? "#f8fafc" : "#475569",
-        border: "none",
+        background: active ? Y3.brand : "rgba(142, 77, 196, 0.12)",
+        color: active ? Y3.text : Y3.muted,
+        border: `1px solid ${Y3.border}`,
         borderRadius: 8,
         padding: "6px 14px",
         fontSize: 12,
@@ -231,9 +243,9 @@ function FilterBtn({ label, active, onClick }) {
 
 function StatBox({ label, value, color }) {
   return (
-    <div style={{ background: "#f9fafb", borderRadius: 8, padding: "8px 10px", flex: "1 1 80px" }}>
-      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: "#9ca3af" }}>{label}</div>
-      <div style={{ fontSize: 18, fontWeight: 700, color: color || "#111827", marginTop: 2 }}>{value}</div>
+    <div style={{ background: "rgba(142, 77, 196, 0.1)", border: `1px solid ${Y3.border}`, borderRadius: 8, padding: "8px 10px", flex: "1 1 80px" }}>
+      <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: "0.06em", color: Y3.muted }}>{label}</div>
+      <div style={{ fontSize: 18, fontWeight: 700, color: color || Y3.text, marginTop: 2 }}>{value}</div>
     </div>
   );
 }
@@ -267,13 +279,13 @@ function RiskCard({ risk }) {
   const sev = SEV[risk.severity];
 
   const daysColor =
-    risk.daysLeft === 0 ? "#ef4444" : risk.daysLeft <= 5 ? "#f97316" : risk.daysLeft <= 14 ? "#eab308" : "#374151";
+    risk.daysLeft === 0 ? "#ef4444" : risk.daysLeft <= 5 ? "#f97316" : risk.daysLeft <= 14 ? "#eab308" : Y3.text;
 
   return (
     <div
       style={{
-        background: "#fff",
-        border: "1px solid #e5e7eb",
+        background: Y3.surface,
+        border: `1px solid ${Y3.border}`,
         borderLeft: `4px solid ${sev.border}`,
         borderRadius: 12,
         overflow: "hidden",
@@ -283,8 +295,8 @@ function RiskCard({ risk }) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", padding: "16px 18px 12px" }}>
         <div>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#111827" }}>{risk.item}</div>
-          <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3 }}>📍 {risk.location}</div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: Y3.text }}>{risk.item}</div>
+          <div style={{ fontSize: 12, color: Y3.muted, marginTop: 3 }}>📍 {risk.location}</div>
         </div>
         <span
           style={{
@@ -311,22 +323,22 @@ function RiskCard({ risk }) {
       </div>
 
       {/* Divider */}
-      <div style={{ height: 1, background: "#f3f4f6", margin: "0 18px" }} />
+      <div style={{ height: 1, background: Y3.border, margin: "0 18px" }} />
 
       {/* Delivery row */}
       <div style={{ padding: "10px 18px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
         {risk.nextDeliveryDate ? (
-          <span style={{ fontSize: 12, color: "#6b7280" }}>
-            📅 <strong style={{ color: "#374151" }}>{risk.poRef}</strong> arriving{" "}
-            <strong style={{ color: "#374151" }}>{risk.nextDeliveryDate}</strong>{" "}
+          <span style={{ fontSize: 12, color: Y3.muted }}>
+            📅 <strong style={{ color: Y3.text }}>{risk.poRef}</strong> arriving{" "}
+            <strong style={{ color: Y3.text }}>{risk.nextDeliveryDate}</strong>{" "}
             (+{risk.nextDeliveryQty} units)
           </span>
         ) : (
           <span
             style={{
               fontSize: 12,
-              color: "#991b1b",
-              background: "#fef2f2",
+              color: "#fca5a5",
+              background: "rgba(248, 113, 113, 0.14)",
               borderRadius: 8,
               padding: "7px 12px",
               display: "block",
@@ -344,8 +356,8 @@ function RiskCard({ risk }) {
         <div style={{ margin: "0 18px 16px" }}>
           <div
             style={{
-              background: "#f0fdf4",
-              border: "1px solid #bbf7d0",
+              background: "rgba(52, 211, 153, 0.12)",
+              border: "1px solid rgba(52, 211, 153, 0.35)",
               borderRadius: 8,
               padding: "10px 14px",
             }}
@@ -363,7 +375,7 @@ function RiskCard({ risk }) {
               🔁 Suggested action
             </div>
             {risk.transferSuggestions.map((t, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#374151", lineHeight: 1.65 }}>
+              <div key={i} style={{ fontSize: 12, color: Y3.text, lineHeight: 1.65 }}>
                 {t.qty && (
                   <span>
                     <strong style={{ color: "#15803d" }}>{t.from}</strong>
@@ -380,7 +392,7 @@ function RiskCard({ risk }) {
 
       {/* Downstream toggle */}
       {risk.downstreamImpact?.length > 0 && (
-        <div style={{ borderTop: "1px solid #f3f4f6" }}>
+        <div style={{ borderTop: `1px solid ${Y3.border}` }}>
           <button
             onClick={() => setOpen((v) => !v)}
             style={{
@@ -390,7 +402,7 @@ function RiskCard({ risk }) {
               border: "none",
               padding: "9px 18px",
               fontSize: 12,
-              color: "#6b7280",
+              color: Y3.muted,
               cursor: "pointer",
               display: "flex",
               justifyContent: "space-between",
@@ -400,7 +412,7 @@ function RiskCard({ risk }) {
             <span>{open ? "▲" : "▼"}</span>
           </button>
           {open && (
-            <div style={{ padding: "4px 18px 14px", fontSize: 12, color: "#374151", lineHeight: 1.7 }}>
+            <div style={{ padding: "4px 18px 14px", fontSize: 12, color: Y3.text, lineHeight: 1.7 }}>
               A stockout of <strong>{risk.item}</strong> will halt production of:{" "}
               <strong style={{ color: "#dc2626" }}>{risk.downstreamImpact.join(", ")}</strong>.
               These items share the same supply chain path — prioritise resolution within{" "}
@@ -427,9 +439,9 @@ export default function InventoryStrategistDemo() {
       style={{
         fontFamily:
           "'DM Sans', 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif",
-        background: "#f8fafc",
+        background: Y3.bg,
         minHeight: "100vh",
-        color: "#111827",
+        color: Y3.text,
       }}
     >
       {/* ── Sticky header ── */}
@@ -438,9 +450,9 @@ export default function InventoryStrategistDemo() {
           position: "sticky",
           top: 0,
           zIndex: 20,
-          background: "rgba(255,255,255,0.92)",
+          background: "linear-gradient(90deg, rgba(74,31,104,0.95) 0%, rgba(28,16,40,0.95) 55%, rgba(107,45,145,0.35) 100%)",
           backdropFilter: "blur(8px)",
-          borderBottom: "1px solid #e5e7eb",
+          borderBottom: `1px solid ${Y3.border}`,
           padding: "14px 28px",
           display: "flex",
           alignItems: "center",
@@ -452,7 +464,7 @@ export default function InventoryStrategistDemo() {
             width: 38,
             height: 38,
             borderRadius: 10,
-            background: "linear-gradient(135deg,#ef4444,#dc2626)",
+            background: `linear-gradient(135deg, ${Y3.brandBright}, ${Y3.brand})`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -463,10 +475,10 @@ export default function InventoryStrategistDemo() {
           📦
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 15, fontWeight: 700, color: "#111827", letterSpacing: "0.01em" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: Y3.text, letterSpacing: "0.01em" }}>
             Inventory Strategist — Stockout Risk
           </div>
-          <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+          <div style={{ fontSize: 12, color: Y3.muted, marginTop: 2 }}>
             frePPLe live data · 30 Mar 2026 · 19 buffers · 4 locations
           </div>
         </div>
@@ -495,18 +507,18 @@ export default function InventoryStrategistDemo() {
         {/* Summary banner */}
         <div
           style={{
-            background: "#fff",
-            border: "1px solid #e5e7eb",
-            borderLeft: "4px solid #ef4444",
+            background: Y3.surface,
+            border: `1px solid ${Y3.border}`,
+            borderLeft: `4px solid ${Y3.brandBright}`,
             borderRadius: 12,
             padding: "16px 20px",
             marginBottom: 24,
             fontSize: 13,
-            color: "#374151",
+            color: Y3.text,
             lineHeight: 1.7,
           }}
         >
-          <strong style={{ color: "#111827" }}>5 items are at genuine stockout risk</strong> — on-hand stock depletes before
+          <strong style={{ color: Y3.text }}>5 items are at genuine stockout risk</strong> — on-hand stock depletes before
           the next replenishment arrives. The most urgent is{" "}
           <strong style={{ color: "#dc2626" }}>Grinded wooden panel @ factory</strong> (zero stock, no delivery scheduled) and{" "}
           <strong style={{ color: "#dc2626" }}>Wooden panel @ factory</strong> (PO#1 53 days delayed, expiry risk). Transfers from{" "}
@@ -519,8 +531,8 @@ export default function InventoryStrategistDemo() {
           <KpiCard label="High risk" value={highCount} color="#f97316" />
           <KpiCard label="Medium" value={medCount} color="#eab308" />
           <KpiCard label="Transfers available" value={3} color="#16a34a" />
-          <KpiCard label="Locations scanned" value={4} color="#2563eb" />
-          <KpiCard label="Buffers analysed" value={19} color="#6b7280" />
+          <KpiCard label="Locations scanned" value={4} color={Y3.brandBright} />
+          <KpiCard label="Buffers analysed" value={19} color={Y3.muted} />
         </div>
 
         {/* Filter row */}
@@ -542,7 +554,7 @@ export default function InventoryStrategistDemo() {
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            color: "#9ca3af",
+            color: Y3.muted,
             marginBottom: 14,
           }}
         >
@@ -555,21 +567,21 @@ export default function InventoryStrategistDemo() {
             <RiskCard key={r.id} risk={r} />
           ))}
           {visible.length === 0 && (
-            <div style={{ textAlign: "center", color: "#9ca3af", padding: "40px 0", fontSize: 14 }}>
+            <div style={{ textAlign: "center", color: Y3.muted, padding: "40px 0", fontSize: 14 }}>
               No items matching this filter.
             </div>
           )}
         </div>
 
         {/* Healthy stock section */}
-        <div style={{ marginTop: 32, paddingTop: 24, borderTop: "1px solid #e5e7eb" }}>
+        <div style={{ marginTop: 32, paddingTop: 24, borderTop: `1px solid ${Y3.border}` }}>
           <div
             style={{
               fontSize: 11,
               fontWeight: 700,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              color: "#9ca3af",
+              color: Y3.muted,
               marginBottom: 14,
             }}
           >
@@ -580,17 +592,17 @@ export default function InventoryStrategistDemo() {
               <div
                 key={h.item}
                 style={{
-                  background: "#fff",
-                  border: "1px solid #e5e7eb",
+                  background: Y3.surface,
+                  border: `1px solid ${Y3.border}`,
                   borderLeft: "3px solid #16a34a",
                   borderRadius: 10,
                   padding: "12px 14px",
                   fontSize: 12,
-                  color: "#374151",
+                  color: Y3.text,
                 }}
               >
-                <div style={{ fontWeight: 700, color: "#111827", marginBottom: 4 }}>✅ {h.item}</div>
-                <div style={{ color: "#6b7280", lineHeight: 1.6 }}>{h.detail}</div>
+                <div style={{ fontWeight: 700, color: Y3.text, marginBottom: 4 }}>✅ {h.item}</div>
+                <div style={{ color: Y3.muted, lineHeight: 1.6 }}>{h.detail}</div>
               </div>
             ))}
           </div>
@@ -600,12 +612,12 @@ export default function InventoryStrategistDemo() {
         <div
           style={{
             marginTop: 24,
-            background: "#fffbeb",
-            border: "1px solid #fde68a",
+            background: "rgba(245, 158, 11, 0.14)",
+            border: "1px solid rgba(245, 158, 11, 0.35)",
             borderRadius: 12,
             padding: "14px 18px",
             fontSize: 12,
-            color: "#92400e",
+            color: "#fcd34d",
             lineHeight: 1.7,
           }}
         >
@@ -619,7 +631,7 @@ export default function InventoryStrategistDemo() {
           style={{
             marginTop: 28,
             fontSize: 11,
-            color: "#d1d5db",
+            color: Y3.muted,
             textAlign: "center",
             letterSpacing: "0.04em",
           }}

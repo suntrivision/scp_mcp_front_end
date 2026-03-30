@@ -4,6 +4,7 @@ import ExceptionDashboard from './ExceptionDashboard.jsx';
 import InventoryShortageReport from './Inventoryshortagereportold.jsx';
 import DynamicInventoryShortageReport from './InventoryShortageReportDynamic.jsx';
 import DemandSentinelAgent from './DemandSentinelAgent.jsx';
+import InventoryStrategist from './InventoryStrategist.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
@@ -107,6 +108,13 @@ export default function App() {
             onClick={() => setView('demand-sentinel')}
           >
             Demand Sentinel Agent
+          </button>
+          <button
+            type="button"
+            className={`btn ${view === 'inventory-strategist' ? 'primary' : ''}`}
+            onClick={() => setView('inventory-strategist')}
+          >
+            Inventory Strategist Agent
           </button>
           <button
             type="button"
@@ -249,6 +257,12 @@ export default function App() {
       {view === 'demand-sentinel' && (
         <section className="demand-sentinel-embed">
           <DemandSentinelAgent />
+        </section>
+      )}
+
+      {view === 'inventory-strategist' && (
+        <section className="inventory-strategist-embed">
+          <InventoryStrategist />
         </section>
       )}
 

@@ -223,7 +223,11 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '4mb' }));
 
-/** Dynamic Inventory Shortage — shared by POST /api/frepple/query?mode=inventory_shortage and POST /api/frepple/inventory-shortage */
+/**
+ * Dynamic Inventory Shortage — shared by POST /api/frepple/query (body.mode === "inventory_shortage")
+ * and POST /api/frepple/inventory-shortage.
+ * For MCPSCP / Render: copy this flow + parseInventoryShortageJson + FREPPLE_INVENTORY_SHORTAGE_PROMPT — see server/BACKEND_INVENTORY_SHORTAGE.md
+ */
 async function handleInventoryShortage(_req, res) {
   try {
     const claudeBin = resolveClaudeExecutable();

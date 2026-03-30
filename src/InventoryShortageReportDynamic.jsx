@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFreppleShortageData } from "./Usefreppleshortagedata.js";
 
 // ── Fallback static data (shown before first live fetch) ──────────────────────
@@ -109,10 +109,82 @@ function Shimmer({ h = 20, w = "100%", r = 6, mb = 0 }) {
   );
 }
 
-function LoadingSkeleton({ statusMsg }) {
+function LoadingSkeleton({ statusMsg, progressStep, progressSteps, elapsedSec }) {
+  const n = progressSteps?.length || 1;
+  const pct = Math.min(100, Math.round(((progressStep + 1) / n) * 100));
   return (
     <div style={{ padding:"28px 24px", fontFamily:"'DM Sans','Helvetica Neue',sans-serif", maxWidth:900, margin:"0 auto" }}>
-      <style>{`@keyframes frepple-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+      <style>{`
+        @keyframes frepple-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        @keyframes progress-pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+      `}</style>
+
+      <div style={{ marginBottom:20 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:8 }}>
+          <span style={{ fontSize:14, fontWeight:700, color:"#0f172a" }}>Loading live shortage report</span>
+          <span style={{ fontSize:12, color:"#94a3b8", fontVariantNumeric:"tabular-nums" }}>
+            {elapsedSec != null ? `${elapsedSec}s elapsed` : ""}
+          </span>
+        </div>
+        <div style={{ height:6, background:"#e2e8f0", borderRadius:99, overflow:"hidden" }}>
+          <div
+            style={{
+              width:`${pct}%`,
+              height:"100%",
+              background:"linear-gradient(90deg,#0f172a,#334155)",
+              borderRadius:99,
+              transition:"width 0.6s ease",
+            }}
+          />
+        </div>
+        <p style={{ fontSize:12, color:"#64748b", margin:"10px 0 0" }}>{statusMsg || "Connecting…"}</p>
+      </div>
+
+      <div
+        style={{
+          background:"#f8fafc",
+          border:"1px solid #e2e8f0",
+          borderRadius:10,
+          padding:"14px 18px",
+          marginBottom:24,
+        }}
+      >
+        <div style={{ fontSize:11, fontWeight:700, color:"#94a3b8", letterSpacing:"0.08em", marginBottom:12 }}>
+          PROGRESS
+        </div>
+        <ol style={{ margin:0, padding:0, listStyle:"none", display:"flex", flexDirection:"column", gap:10 }}>
+          {(progressSteps || []).map((step, i) => {
+            const done = i < progressStep;
+            const active = i === progressStep;
+            return (
+              <li
+                key={step.label}
+                style={{
+                  display:"flex",
+                  alignItems:"flex-start",
+                  gap:10,
+                  fontSize:13,
+                  color: done ? "#16a34a" : active ? "#0f172a" : "#94a3b8",
+                  fontWeight: active ? 600 : 400,
+                }}
+              >
+                <span style={{ flexShrink:0, width:20, textAlign:"center", marginTop:1 }}>
+                  {done ? "✓" : active ? <span style={{ animation:"progress-pulse 1.2s ease infinite" }}>●</span> : "○"}
+                </span>
+                <span>
+                  <span style={{ display:"block" }}>{step.label}</span>
+                  {step.detail ? (
+                    <span style={{ display:"block", fontSize:11, color: active ? "#64748b" : "#cbd5e1", marginTop:2, fontWeight:400 }}>
+                      {step.detail}
+                    </span>
+                  ) : null}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+
       <Shimmer h={28} w={280} mb={8} />
       <Shimmer h={14} w={200} mb={28} />
       <div style={{ display:"flex", gap:12, marginBottom:32 }}>
@@ -122,7 +194,9 @@ function LoadingSkeleton({ statusMsg }) {
       <Shimmer h={200} r={10} mb={32} />
       <Shimmer h={14} w={160} mb={16} />
       {[1,2,3].map(i => <Shimmer key={i} h={64} r={10} mb={10} />)}
-      <p style={{ textAlign:"center", fontSize:13, color:"#64748b", marginTop:20 }}>{statusMsg || "Connecting to planning data…"}</p>
+      <p style={{ textAlign:"center", fontSize:12, color:"#94a3b8", marginTop:16 }}>
+        Large plans can take 1–3 minutes. This screen updates as stages advance.
+      </p>
     </div>
   );
 }
@@ -332,12 +406,33 @@ function ReportView({ data }) {
 
 // ── Shell: handles loading / error / refresh bar, renders ReportView ──────────
 export default function DynamicInventoryShortageReport() {
-  const { data, loading, error, statusMsg, fetchReport } = useFreppleShortageData();
+  const { data, loading, error, statusMsg, progressStep, progressSteps, fetchReport } =
+    useFreppleShortageData();
+
+  const [elapsedSec, setElapsedSec] = useState(0);
+  useEffect(() => {
+    if (!loading) {
+      setElapsedSec(0);
+      return;
+    }
+    setElapsedSec(0);
+    const id = setInterval(() => setElapsedSec((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
 
   const displayData = data || STATIC_DATA;
   const isLive      = !!data;
 
-  if (loading) return <LoadingSkeleton statusMsg={statusMsg} />;
+  if (loading) {
+    return (
+      <LoadingSkeleton
+        statusMsg={statusMsg}
+        progressStep={progressStep}
+        progressSteps={progressSteps}
+        elapsedSec={elapsedSec}
+      />
+    );
+  }
   if (error)   return <ErrorState error={error} onRetry={fetchReport} />;
 
   return (

@@ -14,6 +14,8 @@ Your backend must expose (same Claude + Y3 MCP stack as local `server/index.mjs`
 
 - `POST /api/frepple/query` — must handle `{"mode":"inventory_shortage","message":"…"}` for Dynamic Inventory (this repo’s `server/index.mjs` does this)
 
+If the backend is a **separate repo** (e.g. MCPSCP on Render), implement that branch using **`server/BACKEND_INVENTORY_SHORTAGE.md`** (contract + copy-paste notes).
+
 Examples:
 
 - Deploy backend to a VM/container.

@@ -636,7 +636,7 @@ export default function InventoryStrategistDemo() {
             letterSpacing: "0.04em",
           }}
         >
-          Inventory Strategy Agent · frePPLe MCP · Analysis date: 30 Mar 2026
+          Inventory Strategy Agent
         </div>
       </div>
     </div>

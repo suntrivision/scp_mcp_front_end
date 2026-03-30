@@ -287,7 +287,7 @@ Think step by step, fetching data as needed. Only include items with a genuine s
           tools: [
             {
               type: "mcp_toolset",
-              name: "frepple",
+              mcp_server_name: "frepple",
             },
           ],
           mcp_servers: [

@@ -247,7 +247,7 @@ export default function App() {
       )}
 
       {view === 'demand-sentinel' && (
-        <section className="card inventory-shortage-page">
+        <section className="demand-sentinel-embed">
           <DemandSentinelAgent />
         </section>
       )}

@@ -149,6 +149,15 @@ input[type='date'] {
   position: relative;
 }
 
+/* Demand Sentinel: full dashboard from Demandsentinel.jsx — no extra card chrome */
+.demand-sentinel-embed {
+  padding: 0;
+  margin-bottom: 1.25rem;
+  background: transparent;
+  border: none;
+  overflow-x: auto;
+}
+
 .card-head {
   display: flex;
   flex-wrap: wrap;

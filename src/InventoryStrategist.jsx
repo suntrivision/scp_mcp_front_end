@@ -275,7 +275,8 @@ Return your analysis as a JSON block (and ONLY this, wrapped in \`\`\`json ... \
 Think step by step, fetching data as needed. Only include items with a genuine stockout risk (days_until_stockout < days_until_delivery, OR onhand is 0/near-zero with no delivery coming).`;
 
     try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
+      // Use same-origin proxy to avoid browser CORS and keep API key server-side.
+      const res = await fetch("/api/anthropic-messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

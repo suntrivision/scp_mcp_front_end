@@ -275,24 +275,12 @@ Return your analysis as a JSON block (and ONLY this, wrapped in \`\`\`json ... \
 Think step by step, fetching data as needed. Only include items with a genuine stockout risk (days_until_stockout < days_until_delivery, OR onhand is 0/near-zero with no delivery coming).`;
 
     try {
-      // Use same-origin proxy to avoid browser CORS and keep API key server-side.
-      const res = await fetch("/api/anthropic-messages", {
+      // Route via backend frePPLe chat path (same server-side MCP setup as other agents).
+      const res = await fetch("/api/frepple/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 4096,
-          system: systemPrompt,
-          messages: [{ role: "user", content: "Run the stockout risk analysis now. Fetch all the data you need from frePPLe, reason through it, then return the JSON." }],
-          tools: [
-            {
-              type: "mcp_toolset",
-              mcp_server_name: "frepple",
-            },
-          ],
-          mcp_servers: [
-            { type: "url", url: "https://mcp.frepple.com/mcp", name: "frepple" }
-          ],
+          message: `${systemPrompt}\n\nRun the stockout risk analysis now. Fetch all the data you need from frePPLe, reason through it, then return the JSON.`,
         }),
       });
 
@@ -302,20 +290,8 @@ Think step by step, fetching data as needed. Only include items with a genuine s
       }
 
       const data = await res.json();
-
-      // accumulate all text blocks into the stream display
-      let fullText = "";
-      for (const block of data.content) {
-        if (block.type === "text") {
-          fullText += block.text;
-          setStream(fullText);
-        } else if (block.type === "mcp_tool_use") {
-          setStream((p) => p + `\n[→ tool: ${block.name}]\n`);
-        } else if (block.type === "mcp_tool_result") {
-          const preview = JSON.stringify(block.content).slice(0, 120);
-          setStream((p) => p + `[← result: ${preview}...]\n`);
-        }
-      }
+      const fullText = String(data.answer || data.raw || "").trim();
+      setStream(fullText || "No analysis text returned.");
 
       // extract JSON
       const jsonMatch = fullText.match(/```json\s*([\s\S]*?)```/);

@@ -3,6 +3,7 @@ import { queryFreppleNaturalLanguage } from './tallyService.js';
 import ExceptionDashboard from './ExceptionDashboard.jsx';
 import InventoryShortageReport from './Inventoryshortagereportold.jsx';
 import DynamicInventoryShortageReport from './InventoryShortageReportDynamic.jsx';
+import DemandSentinelAgent from './DemandSentinelAgent.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
@@ -99,6 +100,13 @@ export default function App() {
             onClick={() => setView('inventory')}
           >
             Inventory Shortage Agent
+          </button>
+          <button
+            type="button"
+            className={`btn ${view === 'demand-sentinel' ? 'primary' : ''}`}
+            onClick={() => setView('demand-sentinel')}
+          >
+            Demand Sentinel Agent
           </button>
           <button
             type="button"
@@ -235,6 +243,12 @@ export default function App() {
       {view === 'inventory' && (
         <section className="card inventory-shortage-page">
           <InventoryShortageReport />
+        </section>
+      )}
+
+      {view === 'demand-sentinel' && (
+        <section className="card inventory-shortage-page">
+          <DemandSentinelAgent />
         </section>
       )}
 

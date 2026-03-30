@@ -137,8 +137,8 @@ function ErrorState({ error, onRetry }) {
         <p style={{ fontSize:13, color:"#475569", marginBottom:12 }}>Common fixes:</p>
         <ul style={{ fontSize:13, color:"#475569", margin:"0 0 16px 16px", lineHeight:2 }}>
           <li>Same setup as <strong>AI Reporting Agent</strong>: run <code>npm run dev</code> (API + Vite) and ensure Claude Code can reach Y3 MCP</li>
-          <li>On Vercel: set <code>FREPPLE_BACKEND_URL</code> to the public URL of the server that implements <code>POST /api/frepple/inventory-shortage</code> (same host as <code>/api/frepple/query</code>)</li>
-          <li>That backend must run the Claude CLI path (see <code>server/index.mjs</code>) or an equivalent in your MCPSCP deployment</li>
+          <li>On Vercel: set <code>FREPPLE_BACKEND_URL</code> to the same host as AI Reporting (must expose <code>POST /api/frepple/query</code>)</li>
+          <li>That backend must support <code>mode: &quot;inventory_shortage&quot;</code> in the query body (see <code>server/index.mjs</code>) or add the same handler to your MCPSCP server</li>
         </ul>
         <button type="button" onClick={onRetry} style={{ padding:"8px 18px", background:"#0f172a", color:"#fff", border:"none", borderRadius:7, fontSize:13, fontWeight:600, cursor:"pointer" }}>
           ↻ Retry

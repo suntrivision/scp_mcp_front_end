@@ -223,6 +223,32 @@ const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '4mb' }));
 
+/** Dynamic Inventory Shortage — shared by POST /api/frepple/query?mode=inventory_shortage and POST /api/frepple/inventory-shortage */
+async function handleInventoryShortage(_req, res) {
+  try {
+    const claudeBin = resolveClaudeExecutable();
+    const { code, stdout, stderr } = await runClaudePrintMode(
+      claudeBin,
+      ['--dangerously-skip-permissions', '-p', FREPPLE_INVENTORY_SHORTAGE_PROMPT.trim()],
+      CLAUDE_WORKDIR,
+      120000
+    );
+    if (!stdout.trim()) {
+      const msg =
+        stderr.trim() ||
+        (code !== 0 ? `Claude exited with code ${code}` : 'Empty response from Claude');
+      return res.status(500).json({ error: msg });
+    }
+    const data = parseInventoryShortageJson(stdout);
+    const benignStderr =
+      /no stdin data received/i.test(stderr) || /proceeding without it/i.test(stderr);
+    const warning = stderr.trim() && !benignStderr ? stderr.trim() : undefined;
+    res.json({ data, ...(warning ? { warning } : {}) });
+  } catch (e) {
+    res.status(500).json({ error: e?.message || 'Inventory shortage analysis failed' });
+  }
+}
+
 /** Anthropic Messages API proxy — key from ANTHROPIC_API_KEY (see .env / Vercel secrets). */
 app.post('/api/anthropic-messages', async (req, res) => {
   try {
@@ -344,6 +370,10 @@ app.post('/api/frepple/chat', async (req, res) => {
 
 app.post('/api/frepple/query', async (req, res) => {
   try {
+    const mode = String(req.body?.mode || '').trim();
+    if (mode === 'inventory_shortage') {
+      return await handleInventoryShortage(req, res);
+    }
     const message = String(req.body?.message || '').trim();
     if (!message) {
       return res.status(400).json({ error: 'message is required' });
@@ -376,31 +406,8 @@ app.post('/api/frepple/query', async (req, res) => {
   }
 });
 
-/** Dynamic Inventory Shortage — same transport as /api/frepple/query (Claude CLI + Y3 MCP). */
-app.post('/api/frepple/inventory-shortage', async (req, res) => {
-  try {
-    const claudeBin = resolveClaudeExecutable();
-    const { code, stdout, stderr } = await runClaudePrintMode(
-      claudeBin,
-      ['--dangerously-skip-permissions', '-p', FREPPLE_INVENTORY_SHORTAGE_PROMPT.trim()],
-      CLAUDE_WORKDIR,
-      120000
-    );
-    if (!stdout.trim()) {
-      const msg =
-        stderr.trim() ||
-        (code !== 0 ? `Claude exited with code ${code}` : 'Empty response from Claude');
-      return res.status(500).json({ error: msg });
-    }
-    const data = parseInventoryShortageJson(stdout);
-    const benignStderr =
-      /no stdin data received/i.test(stderr) || /proceeding without it/i.test(stderr);
-    const warning = stderr.trim() && !benignStderr ? stderr.trim() : undefined;
-    res.json({ data, ...(warning ? { warning } : {}) });
-  } catch (e) {
-    res.status(500).json({ error: e?.message || 'Inventory shortage analysis failed' });
-  }
-});
+/** Optional alias — prefer POST /api/frepple/query with body: { mode: "inventory_shortage", message: "…" } */
+app.post('/api/frepple/inventory-shortage', handleInventoryShortage);
 
 const server = app.listen(PORT, () => {
   console.log(`Tally API http://127.0.0.1:${PORT} (TALLY_MCP_ROOT=${MCP_ROOT})`);

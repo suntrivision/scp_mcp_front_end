@@ -12,8 +12,9 @@ export default async function handler(req, res) {
     });
   }
 
-  const message = String(req.body?.message || '').trim();
-  if (!message) {
+  const message = String(req.body?.message ?? '').trim();
+  const mode = String(req.body?.mode ?? '').trim();
+  if (!message && mode !== 'inventory_shortage') {
     return res.status(400).json({ error: 'message is required' });
   }
 
@@ -23,7 +24,9 @@ export default async function handler(req, res) {
     const upstream = await fetch(target, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify(
+        req.body && typeof req.body === 'object' ? req.body : { message }
+      ),
     });
     const data = await upstream.json().catch(() => ({}));
     return res.status(upstream.status).json(data);

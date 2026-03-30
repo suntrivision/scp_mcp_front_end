@@ -12,8 +12,7 @@ This project can be deployed to Vercel for web access, but the frePPLe MCP logic
 
 Your backend must expose (same Claude + Y3 MCP stack as local `server/index.mjs`):
 
-- `POST /api/frepple/query`
-- `POST /api/frepple/inventory-shortage` (Dynamic Inventory Shortage Agent)
+- `POST /api/frepple/query` — must handle `{"mode":"inventory_shortage","message":"…"}` for Dynamic Inventory (this repo’s `server/index.mjs` does this)
 
 Examples:
 

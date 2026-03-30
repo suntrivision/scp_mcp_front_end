@@ -36,10 +36,14 @@ export function useFreppleShortageData() {
     try {
       setStatusMsg("Running inventory shortage analysis (Y3 MCP via backend)…");
 
-      const response = await fetch("/api/frepple/inventory-shortage", {
+      // Same endpoint as AI Reporting Agent — avoids 404 on backends that only expose /api/frepple/query
+      const response = await fetch("/api/frepple/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: "{}",
+        body: JSON.stringify({
+          mode: "inventory_shortage",
+          message: "inventory_shortage",
+        }),
       });
 
       const payload = await response.json().catch(() => ({}));

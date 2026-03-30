@@ -284,6 +284,12 @@ Think step by step, fetching data as needed. Only include items with a genuine s
           max_tokens: 4096,
           system: systemPrompt,
           messages: [{ role: "user", content: "Run the stockout risk analysis now. Fetch all the data you need from frePPLe, reason through it, then return the JSON." }],
+          tools: [
+            {
+              type: "mcp_toolset",
+              name: "frepple",
+            },
+          ],
           mcp_servers: [
             { type: "url", url: "https://mcp.frepple.com/mcp", name: "frepple" }
           ],

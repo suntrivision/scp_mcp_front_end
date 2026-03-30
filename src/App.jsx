@@ -4,7 +4,7 @@ import ExceptionDashboard from './ExceptionDashboard.jsx';
 import InventoryShortageReport from './Inventoryshortagereportold.jsx';
 import DynamicInventoryShortageReport from './InventoryShortageReportDynamic.jsx';
 import DemandSentinelAgent from './DemandSentinelAgent.jsx';
-import InventoryStrategist from './InventoryStrategist.jsx';
+import InventoryStrategistDemo from './InventoryStrategistDemo.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
@@ -262,7 +262,7 @@ export default function App() {
 
       {view === 'inventory-strategist' && (
         <section className="inventory-strategist-embed">
-          <InventoryStrategist />
+          <InventoryStrategistDemo />
         </section>
       )}
 

@@ -116,13 +116,6 @@ export default function App() {
           >
             Inventory Strategist Agent
           </button>
-          <button
-            type="button"
-            className={`btn ${view === 'inventory-dynamic' ? 'primary' : ''}`}
-            onClick={() => setView('inventory-dynamic')}
-          >
-            Dynamic Inventory Shortage Agent
-          </button>
         </div>
       </header>
 

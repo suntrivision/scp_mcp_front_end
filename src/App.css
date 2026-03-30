@@ -167,6 +167,14 @@ input[type='date'] {
   overflow-x: auto;
 }
 
+.demand-forecast-embed {
+  padding: 0;
+  margin-bottom: 1.25rem;
+  background: transparent;
+  border: none;
+  overflow-x: auto;
+}
+
 .card-head {
   display: flex;
   flex-wrap: wrap;

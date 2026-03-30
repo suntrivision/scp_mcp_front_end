@@ -5,6 +5,7 @@ import InventoryShortageReport from './Inventoryshortagereportold.jsx';
 import DynamicInventoryShortageReport from './InventoryShortageReportDynamic.jsx';
 import DemandSentinelAgent from './DemandSentinelAgent.jsx';
 import InventoryStrategistDemo from './InventoryStrategistDemo.jsx';
+import DemandForecastDemo from './DemandForecastDemo.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
 
@@ -115,6 +116,13 @@ export default function App() {
             onClick={() => setView('inventory-strategist')}
           >
             Inventory Strategist Agent
+          </button>
+          <button
+            type="button"
+            className={`btn ${view === 'demand-forecast' ? 'primary' : ''}`}
+            onClick={() => setView('demand-forecast')}
+          >
+            Demand Forecast Agent
           </button>
         </div>
       </header>
@@ -256,6 +264,12 @@ export default function App() {
       {view === 'inventory-strategist' && (
         <section className="inventory-strategist-embed">
           <InventoryStrategistDemo />
+        </section>
+      )}
+
+      {view === 'demand-forecast' && (
+        <section className="demand-forecast-embed">
+          <DemandForecastDemo />
         </section>
       )}
 

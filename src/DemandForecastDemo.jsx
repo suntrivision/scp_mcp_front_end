@@ -148,7 +148,7 @@ export default function DemandForecastDemo() {
     const showActual = view === "all" || view === "actual";
     const showML     = view === "all" || view === "ml";
 
-    // "Today" vertical line plugin
+      // "Today" vertical line plugin
     const todayPlugin = {
       id: "todayLine",
       afterDraw(chart) {
@@ -241,7 +241,7 @@ export default function DemandForecastDemo() {
                 if (ctx.dataset.label === "CI upper")   return `  80% CI upper: ${Math.round(v)} units`;
                 if (ctx.dataset.label === "CI lower")   return `  80% CI lower: ${Math.round(v)} units`;
                 if (ctx.dataset.label === "ML forecast") return `  ML forecast:  ${Math.round(v)} units`;
-                return `  Pegged demand: ${Math.round(v)} units`;
+                return `  Y3 pegged demand: ${Math.round(v)} units`;
               },
             },
           },
@@ -324,9 +324,9 @@ export default function DemandForecastDemo() {
           <div style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.01em" }}>
             Demand Forecast — Chair @ Shop 1
           </div>
-          <div style={{ fontSize: 12, color: Y3.muted, marginTop: 2 }}>
-            Y3 pegging data · ML forecast overlay · 12-month horizon · analysed 30 Mar 2026
-          </div>
+            <div style={{ fontSize: 12, color: Y3.muted, marginTop: 2 }}>
+              Y3 pegging data · ML forecast overlay · 12-month horizon · analysed 30 Mar 2026
+            </div>
         </div>
         <span style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 99, background: "rgba(142,77,196,0.2)", color: Y3.brandBright }}>
           Prophet-style model
@@ -370,7 +370,7 @@ export default function DemandForecastDemo() {
 
           {/* legend */}
           <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 14 }}>
-            <LegendDot color={BLUE}  label="frePPLe pegged demand (actual)" />
+            <LegendDot color={BLUE}  label="Y3 pegged demand (actual)" />
             <LegendDot color={GREEN} dash label="ML forecast (Prophet-style)" />
             <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: Y3.muted }}>
               <span style={{ width: 24, height: 10, borderRadius: 3, background: "rgba(52,211,153,0.2)", border: "1px dashed #34d399", flexShrink: 0 }} />
@@ -500,17 +500,17 @@ export default function DemandForecastDemo() {
         <div
           style={{
             marginTop: 16,
-            background: "rgba(52, 211, 153, 0.14)",
-            border: "1px solid rgba(52, 211, 153, 0.35)",
+            background: "rgba(142, 77, 196, 0.14)",
+            border: "1px solid rgba(142, 77, 196, 0.35)",
             borderRadius: 10,
             padding: "12px 16px",
             fontSize: 12,
-            color: "#166534",
+            color: Y3.text,
             lineHeight: 1.7,
           }}
         >
-          <span style={{ fontWeight: 700 }}>ML methodology:</span> Demand signal extracted from Y3 PO pegging
-          buckets (<code style={{ fontSize: 11, background: "#dcfce7", padding: "1px 4px", borderRadius: 3 }}>chair @ shop 1 @ All customers</code>).
+          <span style={{ fontWeight: 700, color: Y3.brandBright }}>ML methodology:</span> Demand signal extracted from Y3 PO pegging
+          buckets (<code style={{ fontSize: 11, background: "rgba(142, 77, 196, 0.18)", color: Y3.brandBright, padding: "1px 4px", borderRadius: 3 }}>chair @ shop 1 @ All customers</code>).
           Forecast fitted using trend decomposition + additive seasonality (Prophet-style). Confidence
           intervals computed at 80% via quantile regression. MAPE of 8.3% measured against held-out
           Dec '25–Feb '26 buckets. Model detects a repeating Mar–Apr demand spike and a mild

@@ -94,6 +94,59 @@ ${ledgers}
 </ENVELOPE>`;
 }
 
+/**
+ * Build TallyPrime "Import Data → All Masters" XML for COA groups.
+ * Creates/updates only non-empty parent relationships from sample COA.
+ *
+ * @param {{ company?: string, action?: 'Create' | 'Alter' }} opts
+ */
+export function buildSampleCoaImportXml(opts = {}) {
+  const action = opts.action === 'Alter' ? 'Alter' : 'Create';
+  const company = opts.company && String(opts.company).trim();
+
+  const groups = SAMPLE_CHART_OF_ACCOUNTS.filter((r) => String(r.group_parent || '').trim()).map((row) => {
+    const name = escapeXml(row.group_name);
+    const parent = escapeXml(row.group_parent);
+    return `          <GROUP NAME="${name}" ACTION="${action}">
+            <NAME>${name}</NAME>
+            <PARENT>${parent}</PARENT>
+            <ISSUBLEDGER>No</ISSUBLEDGER>
+            <ISBILLWISEON>No</ISBILLWISEON>
+          </GROUP>`;
+  }).join('\n');
+
+  const desc = company
+    ? `<DESC>
+    <STATICVARIABLES>
+      <SVCURRENTCOMPANY>${escapeXml(company)}</SVCURRENTCOMPANY>
+    </STATICVARIABLES>
+  </DESC>`
+    : '';
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<ENVELOPE>
+  <HEADER>
+    <VERSION>1</VERSION>
+    <TALLYREQUEST>Import</TALLYREQUEST>
+    <TYPE>Data</TYPE>
+    <ID>All Masters</ID>
+  </HEADER>
+  <BODY>
+  ${desc}
+  <IMPORTDATA>
+    <REQUESTDESC>
+      <REPORTNAME>All Masters</REPORTNAME>
+    </REQUESTDESC>
+    <REQUESTDATA>
+      <TALLYMESSAGE>
+${groups}
+      </TALLYMESSAGE>
+    </REQUESTDATA>
+  </IMPORTDATA>
+  </BODY>
+</ENVELOPE>`;
+}
+
 /** Strip UTF-16 response to a short status line for JSON. */
 export function tallyResponseSummary(xmlUtf16Response) {
   const t = String(xmlUtf16Response || '');

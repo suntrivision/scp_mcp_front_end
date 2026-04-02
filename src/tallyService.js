@@ -193,3 +193,17 @@ export async function importSampleTrialBalanceToTally(opts = {}) {
   });
   return data;
 }
+
+/** Import sample chart-of-accounts groups into TallyPrime via backend XML post. */
+export async function importSampleCoaToTally(opts = {}) {
+  const company = opts.company ? String(opts.company).trim() : undefined;
+  const action = opts.action === 'Alter' ? 'Alter' : 'Create';
+  const commit = opts.commit === true;
+
+  const data = await fetchTextAndMaybeJson('/api/tally/import-sample-coa', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ company, action, commit }),
+  });
+  return data;
+}

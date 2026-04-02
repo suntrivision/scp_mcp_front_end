@@ -7,7 +7,11 @@ import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { proxyAnthropicMessages } from './anthropic-proxy.mjs';
 import { FREPPLE_INVENTORY_SHORTAGE_PROMPT } from './frepple-inventory-shortage-prompt.mjs';
-import { buildSampleLedgerImportXml, tallyResponseSummary } from './tally-ledger-import-xml.mjs';
+import {
+  buildSampleCoaImportXml,
+  buildSampleLedgerImportXml,
+  tallyResponseSummary,
+} from './tally-ledger-import-xml.mjs';
 import { postTallyUtf16 } from './tally-xml-post.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
@@ -388,6 +392,40 @@ app.post('/api/tally/import-sample-trial-balance', async (req, res) => {
     });
   } catch (e) {
     return res.status(500).json({ error: e?.message || 'Sample import failed' });
+  }
+});
+
+/** Sample COA import to TallyPrime (group masters). */
+app.post('/api/tally/import-sample-coa', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const company = body.company ? String(body.company).trim() : undefined;
+    const action = body.action === 'Alter' ? 'Alter' : 'Create';
+    const commit = body.commit === true;
+    const xml = buildSampleCoaImportXml({ company, action });
+
+    if (!commit) {
+      return res.json({
+        ok: true,
+        dryRun: true,
+        xmlLength: xml.length,
+        preview: xml.slice(0, 2000),
+        xml,
+        requested: { company, action },
+      });
+    }
+
+    const xmlUtf16Response = await postTallyUtf16(xml);
+    const summary = tallyResponseSummary(xmlUtf16Response);
+    return res.json({
+      ok: summary.ok,
+      dryRun: false,
+      summary,
+      requested: { company, action },
+      rawPreview: String(xmlUtf16Response || '').slice(0, 4000),
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e?.message || 'Sample COA import failed' });
   }
 });
 

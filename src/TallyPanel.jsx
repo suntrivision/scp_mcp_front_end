@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { SAMPLE_CHART_OF_ACCOUNTS, SAMPLE_TRIAL_BALANCE } from './tallyShowcaseData.js';
 import {
   getChartOfAccounts,
+  importSampleCoaToTally,
   getTrialBalance,
   importSampleTrialBalanceToTally,
   listCompanies,
@@ -13,6 +14,34 @@ function formatTbCell(col, val) {
     return val.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   }
   return String(val);
+}
+
+function csvEscape(val) {
+  const s = String(val ?? '');
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function toCsv(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return '';
+  const cols = Object.keys(rows[0]);
+  const header = cols.map(csvEscape).join(',');
+  const body = rows
+    .map((row) => cols.map((c) => csvEscape(row[c])).join(','))
+    .join('\n');
+  return `${header}\n${body}\n`;
+}
+
+function downloadCsv(filename, csvText) {
+  const blob = new Blob([csvText], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
 }
 
 function defaultDateRange() {
@@ -46,6 +75,12 @@ export default function TallyPanel() {
   const [importSampleMsg, setImportSampleMsg] = useState(null);
   const [importSampleErr, setImportSampleErr] = useState(null);
   const [importSamplePreview, setImportSamplePreview] = useState('');
+  const [importCoaLoading, setImportCoaLoading] = useState(false);
+  const [importCoaMsg, setImportCoaMsg] = useState(null);
+  const [importCoaErr, setImportCoaErr] = useState(null);
+  const [tbCsvLoading, setTbCsvLoading] = useState(false);
+  const [tbCsvMsg, setTbCsvMsg] = useState(null);
+  const [tbCsvErr, setTbCsvErr] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +192,58 @@ export default function TallyPanel() {
     }
   }, [company]);
 
+  const importSampleCoaIntoTally = useCallback(async () => {
+    const ok = window.confirm(
+      'Import sample chart-of-accounts groups into TallyPrime now?\n\nThis uses HTTP import and will create/alter group masters in the selected company.'
+    );
+    if (!ok) return;
+
+    setImportCoaLoading(true);
+    setImportCoaMsg(null);
+    setImportCoaErr(null);
+    try {
+      const res = await importSampleCoaToTally({
+        company: company.trim() || undefined,
+        action: 'Create',
+        commit: true,
+      });
+      if (res?.summary?.ok) {
+        setImportCoaMsg(res.summary.message || 'COA import accepted by Tally');
+      } else {
+        setImportCoaErr(res?.summary?.message || 'COA import failed');
+      }
+    } catch (e) {
+      setImportCoaErr(e?.message || 'COA import failed');
+    } finally {
+      setImportCoaLoading(false);
+    }
+  }, [company]);
+
+  const downloadTrialBalanceCsv = useCallback(async () => {
+    setTbCsvLoading(true);
+    setTbCsvMsg(null);
+    setTbCsvErr(null);
+    try {
+      // Pull fresh rows from Tally for selected date range/company before exporting.
+      const rows = await getTrialBalance({ from, to, ...companyOpts });
+      if (!rows.length) {
+        setTbCsvErr('No trial-balance rows found for selected date range.');
+        return;
+      }
+      const csv = toCsv(rows);
+      const companySlug = (company.trim() || 'active-company')
+        .replace(/[^a-z0-9-_]+/gi, '_')
+        .replace(/^_+|_+$/g, '');
+      const filename = `trial_balance_${companySlug}_${from}_to_${to}.csv`;
+      downloadCsv(filename, csv);
+      setTbCsvMsg(`Downloaded ${rows.length} rows to ${filename}`);
+    } catch (e) {
+      setTbCsvErr(e?.message || 'CSV download failed');
+    } finally {
+      setTbCsvLoading(false);
+    }
+  }, [company, companyOpts, from, to]);
+
   return (
     <section className="card tally-page">
       <div className="card-head">
@@ -185,6 +272,15 @@ export default function TallyPanel() {
           without live Tally.
         </p>
         <div className="tally-showcase-actions">
+          <button
+            type="button"
+            className="btn"
+            onClick={importSampleCoaIntoTally}
+            disabled={importCoaLoading || companiesLoading}
+            title="Posts sample COA groups (All Masters) to TallyPrime over HTTP."
+          >
+            {importCoaLoading ? 'Importing COA…' : 'Import sample COA into Tally'}
+          </button>
           <button type="button" className="btn" onClick={loadSampleCoa}>
             Sample chart of accounts
           </button>
@@ -195,6 +291,8 @@ export default function TallyPanel() {
             Load both
           </button>
         </div>
+        {importCoaMsg && <p className="ok">{importCoaMsg}</p>}
+        {importCoaErr && <p className="err">{importCoaErr}</p>}
       </div>
 
       <div className="tally-controls">
@@ -263,8 +361,19 @@ export default function TallyPanel() {
           <button type="button" className="btn primary" onClick={loadTrialBalance} disabled={tbLoading}>
             {tbLoading ? 'Loading…' : 'Load trial balance'}
           </button>
+          <button
+            type="button"
+            className="btn"
+            onClick={downloadTrialBalanceCsv}
+            disabled={tbCsvLoading || tbLoading}
+            title="Pull trial-balance rows from Tally for current dates and download as CSV."
+          >
+            {tbCsvLoading ? 'Preparing CSV…' : 'Download trial balance CSV'}
+          </button>
         </div>
         {tbErr && <p className="err">{tbErr}</p>}
+        {tbCsvMsg && <p className="ok">{tbCsvMsg}</p>}
+        {tbCsvErr && <p className="err">{tbCsvErr}</p>}
         <div className="tally-import-sample">
           <button
             type="button"

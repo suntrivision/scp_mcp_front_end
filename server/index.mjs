@@ -213,7 +213,15 @@ const tallyPath = path.join(MCP_ROOT, 'dist', 'tally.mjs');
 let handlePull;
 async function getHandlePull() {
   if (!handlePull) {
+    if (!fs.existsSync(tallyPath)) {
+      throw new Error(
+        `Tally MCP not found at ${tallyPath}. Install tally-prime or set env TALLY_MCP_ROOT to its folder (must contain dist/tally.mjs).`
+      );
+    }
     const mod = await import(pathToFileURL(tallyPath).href);
+    if (typeof mod.handlePull !== 'function') {
+      throw new Error(`tally.mjs at ${tallyPath} does not export handlePull.`);
+    }
     handlePull = mod.handlePull;
   }
   return handlePull;
@@ -269,7 +277,11 @@ app.post('/api/anthropic-messages', async (req, res) => {
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, tallyMcpRoot: MCP_ROOT });
+  res.json({
+    ok: true,
+    tallyMcpRoot: MCP_ROOT,
+    tallyMcpLoaded: fs.existsSync(tallyPath),
+  });
 });
 
 /** Company names from Tally (list-master → Company collection). */

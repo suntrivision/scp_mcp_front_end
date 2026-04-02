@@ -49,9 +49,21 @@ function normalizeRecommendationsResponse(data) {
 
 async function fetchJSON(path) {
   const r = await fetch(path);
-  const data = await r.json().catch(() => ({}));
+  const text = await r.text();
+  let data = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { _nonJson: text };
+  }
   if (!r.ok) {
-    throw new Error(data.error || r.statusText || 'Request failed');
+    const detail =
+      (typeof data.error === 'string' && data.error) ||
+      (typeof data.message === 'string' && data.message) ||
+      (data._nonJson && String(data._nonJson).trim().slice(0, 400)) ||
+      r.statusText ||
+      'Request failed';
+    throw new Error(`HTTP ${r.status}: ${detail}`);
   }
   return data;
 }

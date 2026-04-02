@@ -86,7 +86,10 @@ export default function TallyPanel() {
       </div>
       <p className="hint">
         Reads companies, chart of accounts, and trial balance via the local API (TallyPrime XML on port 9000). Leave
-        company blank to use the active company in Tally.
+        company blank to use the active company in Tally. Run <code>npm run dev</code> so Vite proxies{' '}
+        <code>/api</code> to the Node server (port 8787). If an error shows <code>HTTP 502</code>, start the API;
+        if <code>Tally MCP not found</code>, set <code>TALLY_MCP_ROOT</code> to your tally-prime folder; if connection
+        errors appear, enable Tally as server on port 9000 (F1 → Settings → Connectivity).
       </p>
 
       <div className="tally-controls">

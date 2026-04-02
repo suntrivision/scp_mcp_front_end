@@ -9,6 +9,7 @@ import DemandForecastDemo from './DemandForecastDemo.jsx';
 import DelayPredictorDemo from './DelayPredictorDemo.jsx';
 import PromptGenerator from './PromptGenerator.jsx';
 import QueryAgentsPanel from './QueryAgentsPanel.jsx';
+import TallyPanel from './TallyPanel.jsx';
 
 export default function App() {
   const [view, setView] = useState('frepple');
@@ -131,6 +132,13 @@ export default function App() {
             onClick={() => setView('demand-forecast')}
           >
             Demand Forecast Agent
+          </button>
+          <button
+            type="button"
+            className={`btn ${view === 'tally' ? 'primary' : ''}`}
+            onClick={() => setView('tally')}
+          >
+            Tally Services
           </button>
         </div>
       </header>
@@ -286,6 +294,8 @@ export default function App() {
           <DelayPredictorDemo />
         </section>
       )}
+
+      {view === 'tally' && <TallyPanel />}
 
       {view === 'inventory-dynamic' && (
         <section className="card inventory-shortage-page inventory-shortage-dynamic">

@@ -1066,3 +1066,33 @@ td.empty {
   gap: 0.5rem;
   margin-top: 0.75rem;
 }
+
+/* Tally tab */
+.tally-page .tally-controls {
+  margin-bottom: 1.25rem;
+}
+
+.tally-subhead {
+  margin: 1.5rem 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tally-date-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.tally-date-row .field {
+  margin: 0;
+}
+
+.tally-table {
+  margin-top: 0.75rem;
+  max-height: min(60vh, 520px);
+  overflow: auto;
+}

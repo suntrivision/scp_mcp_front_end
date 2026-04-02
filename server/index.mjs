@@ -7,6 +7,8 @@ import { pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { proxyAnthropicMessages } from './anthropic-proxy.mjs';
 import { FREPPLE_INVENTORY_SHORTAGE_PROMPT } from './frepple-inventory-shortage-prompt.mjs';
+import { buildSampleLedgerImportXml, tallyResponseSummary } from './tally-ledger-import-xml.mjs';
+import { postTallyUtf16 } from './tally-xml-post.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const MCP_ROOT = process.env.TALLY_MCP_ROOT || 'C:\\mcp\\tally-prime';
@@ -345,6 +347,47 @@ app.get('/api/trial-balance', async (req, res) => {
     res.json({ rows: resp.data ?? [] });
   } catch (e) {
     res.status(500).json({ error: e?.message || 'Server error' });
+  }
+});
+
+/**
+ * Sample import to TallyPrime: generates XML for importing ledgers with opening balances
+ * derived from `src/tallyShowcaseData.js`.
+ *
+ * Safety: requires `commit: true` to actually POST to Tally. Otherwise returns XML preview.
+ */
+app.post('/api/tally/import-sample-trial-balance', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const company = body.company ? String(body.company).trim() : undefined;
+    const basis = body.basis === 'closing' ? 'closing' : 'opening';
+    const action = body.action === 'Alter' ? 'Alter' : 'Create';
+    const commit = body.commit === true;
+    const includeOpeningBalances = body.includeOpeningBalances !== false;
+
+    const xml = buildSampleLedgerImportXml({ company, basis, action, includeOpeningBalances });
+    if (!commit) {
+      return res.json({
+        ok: true,
+        dryRun: true,
+        xmlLength: xml.length,
+        preview: xml.slice(0, 2000),
+        xml,
+        requested: { company, basis, action },
+      });
+    }
+
+    const xmlUtf16Response = await postTallyUtf16(xml);
+    const summary = tallyResponseSummary(xmlUtf16Response);
+    return res.json({
+      ok: summary.ok,
+      dryRun: false,
+      summary,
+      requested: { company, basis, action },
+      rawPreview: String(xmlUtf16Response || '').slice(0, 4000),
+    });
+  } catch (e) {
+    return res.status(500).json({ error: e?.message || 'Sample import failed' });
   }
 });
 

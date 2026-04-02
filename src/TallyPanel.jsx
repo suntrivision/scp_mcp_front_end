@@ -1,5 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { getChartOfAccounts, getTrialBalance, listCompanies } from './tallyService.js';
+import { SAMPLE_CHART_OF_ACCOUNTS, SAMPLE_TRIAL_BALANCE } from './tallyShowcaseData.js';
+import {
+  getChartOfAccounts,
+  getTrialBalance,
+  importSampleTrialBalanceToTally,
+  listCompanies,
+} from './tallyService.js';
+
+function formatTbCell(col, val) {
+  if (val === null || val === undefined) return '—';
+  if (typeof val === 'number') {
+    return val.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+  return String(val);
+}
 
 function defaultDateRange() {
   const to = new Date();
@@ -26,6 +40,12 @@ export default function TallyPanel() {
   const [tbRows, setTbRows] = useState([]);
   const [tbLoading, setTbLoading] = useState(false);
   const [tbErr, setTbErr] = useState(null);
+  const [sampleCoa, setSampleCoa] = useState(false);
+  const [sampleTb, setSampleTb] = useState(false);
+  const [importSampleLoading, setImportSampleLoading] = useState(false);
+  const [importSampleMsg, setImportSampleMsg] = useState(null);
+  const [importSampleErr, setImportSampleErr] = useState(null);
+  const [importSamplePreview, setImportSamplePreview] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -58,12 +78,20 @@ export default function TallyPanel() {
     try {
       const rows = await getChartOfAccounts(companyOpts);
       setCoaRows(rows);
+      setSampleCoa(false);
     } catch (e) {
       setCoaErr(e.message || 'Chart of accounts failed');
     } finally {
       setCoaLoading(false);
     }
   }, [companyOpts]);
+
+  const loadSampleCoa = useCallback(() => {
+    setCoaErr(null);
+    setCoaLoading(false);
+    setCoaRows(SAMPLE_CHART_OF_ACCOUNTS);
+    setSampleCoa(true);
+  }, []);
 
   const loadTrialBalance = useCallback(async () => {
     setTbErr(null);
@@ -72,6 +100,7 @@ export default function TallyPanel() {
     try {
       const rows = await getTrialBalance({ from, to, ...companyOpts });
       setTbRows(rows);
+      setSampleTb(false);
     } catch (e) {
       setTbErr(e.message || 'Trial balance failed');
     } finally {
@@ -79,18 +108,94 @@ export default function TallyPanel() {
     }
   }, [from, to, companyOpts]);
 
+  const loadSampleTrialBalance = useCallback(() => {
+    setTbErr(null);
+    setTbLoading(false);
+    setTbRows(SAMPLE_TRIAL_BALANCE);
+    setSampleTb(true);
+  }, []);
+
+  const loadShowcaseBoth = useCallback(() => {
+    setCoaErr(null);
+    setTbErr(null);
+    setCoaLoading(false);
+    setTbLoading(false);
+    setCoaRows(SAMPLE_CHART_OF_ACCOUNTS);
+    setTbRows(SAMPLE_TRIAL_BALANCE);
+    setSampleCoa(true);
+    setSampleTb(true);
+  }, []);
+
+  const importSampleIntoTally = useCallback(async () => {
+    const ok = window.confirm(
+      'Import sample trial-balance ledgers into TallyPrime now?\n\nThis uses HTTP import and will create/alter sample ledgers in the selected company.'
+    );
+    if (!ok) return;
+
+    setImportSampleLoading(true);
+    setImportSampleMsg(null);
+    setImportSampleErr(null);
+    setImportSamplePreview('');
+    try {
+      const res = await importSampleTrialBalanceToTally({
+        company: company.trim() || undefined,
+        basis: 'opening',
+        action: 'Create',
+        includeOpeningBalances: true,
+        commit: true,
+      });
+      if (res?.summary?.ok) {
+        setImportSampleMsg(res.summary.message || 'Import accepted by Tally');
+      } else {
+        setImportSampleErr(res?.summary?.message || 'Tally import failed');
+      }
+      setImportSamplePreview(res?.rawPreview || '');
+    } catch (e) {
+      setImportSampleErr(e?.message || 'Tally import failed');
+    } finally {
+      setImportSampleLoading(false);
+    }
+  }, [company]);
+
   return (
     <section className="card tally-page">
       <div className="card-head">
         <h2>Tally services</h2>
       </div>
       <p className="hint">
-        Reads companies, chart of accounts, and trial balance via the local API (TallyPrime XML on port 9000). Leave
-        company blank to use the active company in Tally. Run <code>npm run dev</code> so Vite proxies{' '}
-        <code>/api</code> to the Node server (port 8787). If an error shows <code>HTTP 502</code>, start the API;
-        if <code>Tally MCP not found</code>, set <code>TALLY_MCP_ROOT</code> to your tally-prime folder; if connection
-        errors appear, enable Tally as server on port 9000 (F1 → Settings → Connectivity).
+        Reads companies, chart of accounts, and trial balance via the Node API (TallyPrime XML on port 9000). Leave
+        company blank to use the active company in Tally.{' '}
+        <strong>Local:</strong> <code>npm run dev</code> proxies <code>/api</code> to port 8787.{' '}
+        <strong>Vercel / static build:</strong> set <code>VITE_API_BASE_URL</code> to your API origin (no trailing slash)
+        when building — the CDN has no <code>/api</code>, so without it you will see HTTP 404.{' '}
+        API host must allow CORS (this server uses <code>cors: true</code>). On the API machine:{' '}
+        <code>TALLY_MCP_ROOT</code>, Tally as server on port 9000 (F1 → Settings → Connectivity).
       </p>
+      {import.meta.env.VITE_API_BASE_URL ? (
+        <p className="hint small-hint">
+          Using API:{' '}
+          <code>{String(import.meta.env.VITE_API_BASE_URL).replace(/\/$/, '')}</code>
+        </p>
+      ) : null}
+
+      <div className="tally-showcase">
+        <p className="tally-showcase-title">Showcase (sample data)</p>
+        <p className="hint small-hint tally-showcase-copy">
+          Demo chart of accounts and trial balance aligned to typical TallyPrime groups — for demos and screenshots
+          without live Tally.
+        </p>
+        <div className="tally-showcase-actions">
+          <button type="button" className="btn" onClick={loadSampleCoa}>
+            Sample chart of accounts
+          </button>
+          <button type="button" className="btn" onClick={loadSampleTrialBalance}>
+            Sample trial balance
+          </button>
+          <button type="button" className="btn primary" onClick={loadShowcaseBoth}>
+            Load both
+          </button>
+        </div>
+      </div>
 
       <div className="tally-controls">
         <label className="field">
@@ -118,6 +223,9 @@ export default function TallyPanel() {
       </div>
 
       {coaErr && <p className="err">{coaErr}</p>}
+      {sampleCoa && coaRows.length > 0 && (
+        <p className="hint tally-showcase-tag">Sample chart of accounts (not from live Tally)</p>
+      )}
       {coaRows.length > 0 && (
         <div className="table-wrap result-table tally-table">
           <table>
@@ -157,6 +265,25 @@ export default function TallyPanel() {
           </button>
         </div>
         {tbErr && <p className="err">{tbErr}</p>}
+        <div className="tally-import-sample">
+          <button
+            type="button"
+            className="btn primary"
+            onClick={importSampleIntoTally}
+            disabled={importSampleLoading || companiesLoading}
+            title="Posts XML import to TallyPrime's HTTP server (port 9000). Requires XML server enabled."
+          >
+            {importSampleLoading ? 'Importing…' : 'Import sample into Tally'}
+          </button>
+          {importSampleMsg && <p className="ok">{importSampleMsg}</p>}
+          {importSampleErr && <p className="err">{importSampleErr}</p>}
+          {importSamplePreview ? (
+            <pre className="tally-import-preview">{importSamplePreview}</pre>
+          ) : null}
+        </div>
+        {sampleTb && tbRows.length > 0 && (
+          <p className="hint tally-showcase-tag">Sample trial balance (not from live Tally)</p>
+        )}
         {tbRows.length > 0 && (
           <div className="table-wrap result-table tally-table">
             <table>
@@ -171,7 +298,7 @@ export default function TallyPanel() {
                 {tbRows.map((row, i) => (
                   <tr key={i}>
                     {Object.keys(tbRows[0]).map((col) => (
-                      <td key={`${i}-${col}`}>{String(row[col] ?? '—')}</td>
+                      <td key={`${i}-${col}`}>{formatTbCell(col, row[col])}</td>
                     ))}
                   </tr>
                 ))}

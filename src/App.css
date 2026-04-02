@@ -1079,8 +1079,63 @@ td.empty {
 }
 
 /* Tally tab */
+.tally-showcase {
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.1rem;
+  background: rgba(110, 45, 145, 0.12);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.tally-showcase-title {
+  margin: 0 0 0.35rem;
+  font-weight: 600;
+  font-size: 0.98rem;
+  color: var(--text);
+}
+
+.tally-showcase-copy {
+  margin: 0 0 0.75rem;
+}
+
+.tally-showcase-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tally-showcase-tag {
+  margin: 0 0 0.5rem;
+  color: var(--warn);
+  font-size: 0.88rem;
+}
+
 .tally-page .tally-controls {
   margin-bottom: 1.25rem;
+}
+
+.tally-import-sample {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.tally-import-preview {
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  padding: 0.8rem 0.85rem;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border);
+  border-radius: 8px;
 }
 
 .tally-subhead {

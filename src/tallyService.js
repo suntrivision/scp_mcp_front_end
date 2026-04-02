@@ -37,7 +37,11 @@ function normalizeRecommendationsResponse(data) {
 }
 
 /**
- * Browser → Vite dev server → Express (same origin) → Tally XML on localhost:9000
+ * Browser → API base URL → Express → Tally XML on localhost:9000
+ *
+ * Local dev: Vite proxies /api to port 8787 (leave VITE_API_BASE_URL unset).
+ * Vercel / static hosting: there is no /api on the CDN — set VITE_API_BASE_URL to your Node API
+ * origin (e.g. https://your-api.onrender.com) at build time so requests hit the real server.
  *
  * Why not call Tally from React directly?
  * - Browsers block cross-origin requests to arbitrary ports (CORS).
@@ -47,8 +51,15 @@ function normalizeRecommendationsResponse(data) {
  * TallyPrime acts as Server, port 9000 (XML). ODBC is a different feature.
  */
 
+/** @param {string} path Absolute path starting with / e.g. /api/companies */
+export function tallyApiUrl(path) {
+  const p = path.startsWith('/') ? path : `/${path}`;
+  const base = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
+  return base ? `${base}${p}` : p;
+}
+
 async function fetchJSON(path) {
-  const r = await fetch(path);
+  const r = await fetch(tallyApiUrl(path));
   const text = await r.text();
   let data = {};
   try {
@@ -104,7 +115,7 @@ export async function getTrialBalance(opts) {
  * @returns {Promise<{intent:string,summary:string,kpis:object,rows:object[],narrative?:string,recommendations?:string[],raw?:string,warning?:string}>}
  */
 export async function queryFreppleNaturalLanguage(opts) {
-  const r = await fetch('/api/frepple/query', {
+  const r = await fetch(tallyApiUrl('/api/frepple/query'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: opts.message }),
@@ -138,4 +149,47 @@ export async function queryFreppleNaturalLanguage(opts) {
  */
 export function fetchExceptionDashboard() {
   return queryFreppleNaturalLanguage({ message: EXCEPTION_DASHBOARD_PROMPT });
+}
+
+function tryParseJson(text) {
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { _nonJson: text };
+  }
+}
+
+async function fetchTextAndMaybeJson(path, init) {
+  const r = await fetch(tallyApiUrl(path), init);
+  const text = await r.text();
+  const data = tryParseJson(text);
+  if (!r.ok) {
+    const detail =
+      (typeof data.error === 'string' && data.error) ||
+      (typeof data.message === 'string' && data.message) ||
+      (data._nonJson && String(data._nonJson).trim().slice(0, 400)) ||
+      r.statusText ||
+      'Request failed';
+    throw new Error(`HTTP ${r.status}: ${detail}`);
+  }
+  return data;
+}
+
+/**
+ * Generate/import sample trial balance opening balances into TallyPrime (All Masters).
+ * By default does a dry run (commit=false). Set commit=true to actually POST.
+ */
+export async function importSampleTrialBalanceToTally(opts = {}) {
+  const company = opts.company ? String(opts.company).trim() : undefined;
+  const basis = opts.basis === 'closing' ? 'closing' : 'opening';
+  const action = opts.action === 'Alter' ? 'Alter' : 'Create';
+  const commit = opts.commit === true;
+  const includeOpeningBalances = opts.includeOpeningBalances !== false;
+
+  const data = await fetchTextAndMaybeJson('/api/tally/import-sample-trial-balance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ company, basis, action, commit, includeOpeningBalances }),
+  });
+  return data;
 }

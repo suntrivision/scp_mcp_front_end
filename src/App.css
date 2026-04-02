@@ -60,6 +60,12 @@ body {
   object-position: left center;
 }
 
+/* Horizontal Trivision.AI wordmark */
+.header-logo--trivision {
+  height: 40px;
+  max-width: min(320px, 85vw);
+}
+
 .sub {
   margin: 0;
   color: var(--muted);
@@ -76,6 +82,11 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.tally-only-nav {
+  cursor: default;
+  pointer-events: none;
 }
 
 .toolbar .field span {

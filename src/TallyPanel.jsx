@@ -78,6 +78,9 @@ export default function TallyPanel() {
   const [importCoaLoading, setImportCoaLoading] = useState(false);
   const [importCoaMsg, setImportCoaMsg] = useState(null);
   const [importCoaErr, setImportCoaErr] = useState(null);
+  const [coaCsvLoading, setCoaCsvLoading] = useState(false);
+  const [coaCsvMsg, setCoaCsvMsg] = useState(null);
+  const [coaCsvErr, setCoaCsvErr] = useState(null);
   const [tbCsvLoading, setTbCsvLoading] = useState(false);
   const [tbCsvMsg, setTbCsvMsg] = useState(null);
   const [tbCsvErr, setTbCsvErr] = useState(null);
@@ -219,6 +222,30 @@ export default function TallyPanel() {
     }
   }, [company]);
 
+  const downloadCoaCsv = useCallback(async () => {
+    setCoaCsvLoading(true);
+    setCoaCsvMsg(null);
+    setCoaCsvErr(null);
+    try {
+      const rows = await getChartOfAccounts(companyOpts);
+      if (!rows.length) {
+        setCoaCsvErr('No chart-of-accounts rows found for selected company.');
+        return;
+      }
+      const csv = toCsv(rows);
+      const companySlug = (company.trim() || 'active-company')
+        .replace(/[^a-z0-9-_]+/gi, '_')
+        .replace(/^_+|_+$/g, '');
+      const filename = `chart_of_accounts_${companySlug}.csv`;
+      downloadCsv(filename, csv);
+      setCoaCsvMsg(`Downloaded ${rows.length} rows to ${filename}`);
+    } catch (e) {
+      setCoaCsvErr(e?.message || 'COA CSV download failed');
+    } finally {
+      setCoaCsvLoading(false);
+    }
+  }, [company, companyOpts]);
+
   const downloadTrialBalanceCsv = useCallback(async () => {
     setTbCsvLoading(true);
     setTbCsvMsg(null);
@@ -314,10 +341,21 @@ export default function TallyPanel() {
             <button type="button" className="btn" onClick={loadChartOfAccounts} disabled={coaLoading}>
               {coaLoading ? 'Loading…' : 'Chart of accounts'}
             </button>
+            <button
+              type="button"
+              className="btn"
+              onClick={downloadCoaCsv}
+              disabled={coaCsvLoading || coaLoading}
+              title="Pull chart of accounts for selected company and download CSV."
+            >
+              {coaCsvLoading ? 'Preparing CSV…' : 'Download COA CSV'}
+            </button>
           </div>
         </label>
         {companiesErr && <p className="err small">{companiesErr}</p>}
         {companiesLoading && <p className="hint">Loading company list…</p>}
+        {coaCsvMsg && <p className="ok">{coaCsvMsg}</p>}
+        {coaCsvErr && <p className="err">{coaCsvErr}</p>}
       </div>
 
       {coaErr && <p className="err">{coaErr}</p>}

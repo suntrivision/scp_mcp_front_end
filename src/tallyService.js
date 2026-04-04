@@ -99,8 +99,26 @@ export function tallyApiUrl(path) {
   return base ? `${base}${p}` : p;
 }
 
+function explainFetchFailure(path, err) {
+  const url = tallyApiUrl(path);
+  const base = String(import.meta.env.VITE_API_BASE_URL || '').trim();
+  const bits = [
+    `${err?.message || 'Network error'} — could not load: ${url}`,
+    'Common causes: browser offline, wrong VITE_API_BASE_URL, CORS (API must allow this site), or mixed content (use https→https).',
+  ];
+  if (!base) {
+    bits.push('Production: set VITE_API_BASE_URL to your Node API (e.g. https://tally-mcp-api.onrender.com) at build time.');
+  }
+  return bits.join(' ');
+}
+
 async function fetchJSON(path) {
-  const r = await fetch(tallyApiUrl(path));
+  let r;
+  try {
+    r = await fetch(tallyApiUrl(path));
+  } catch (err) {
+    throw new Error(explainFetchFailure(path, err));
+  }
   const text = await r.text();
   let data = {};
   try {
@@ -201,7 +219,12 @@ function tryParseJson(text) {
 }
 
 async function fetchTextAndMaybeJson(path, init) {
-  const r = await fetch(tallyApiUrl(path), init);
+  let r;
+  try {
+    r = await fetch(tallyApiUrl(path), init);
+  } catch (err) {
+    throw new Error(explainFetchFailure(path, err));
+  }
   const text = await r.text();
   const data = tryParseJson(text);
   if (!r.ok) {

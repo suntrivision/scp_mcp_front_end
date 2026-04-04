@@ -6,6 +6,9 @@ import {
   getTrialBalance,
   importSampleTrialBalanceToTally,
   listCompanies,
+  getTallyTargetMode,
+  getStoredTallyCustom,
+  persistTallyTarget,
 } from './tallyService.js';
 
 function formatTbCell(col, val) {
@@ -85,6 +88,11 @@ export default function TallyPanel() {
   const [tbCsvMsg, setTbCsvMsg] = useState(null);
   const [tbCsvErr, setTbCsvErr] = useState(null);
 
+  const [tallyMode, setTallyMode] = useState(() => getTallyTargetMode());
+  const [tallyCustomHost, setTallyCustomHost] = useState(() => getStoredTallyCustom().host);
+  const [tallyCustomPort, setTallyCustomPort] = useState(() => getStoredTallyCustom().port);
+  const [tallyTargetKey, setTallyTargetKey] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -102,7 +110,15 @@ export default function TallyPanel() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [tallyTargetKey]);
+
+  const applyTallyTarget = useCallback(() => {
+    if (tallyMode === 'custom' && !String(tallyCustomHost).trim()) {
+      return;
+    }
+    persistTallyTarget(tallyMode, tallyCustomHost, tallyCustomPort);
+    setTallyTargetKey((k) => k + 1);
+  }, [tallyMode, tallyCustomHost, tallyCustomPort]);
 
   const companyOpts = useMemo(() => {
     const o = { company: company.trim() || undefined };
@@ -277,14 +293,80 @@ export default function TallyPanel() {
         <h2>Tally services</h2>
       </div>
       <p className="hint">
-        Reads companies, chart of accounts, and trial balance via the Node API (TallyPrime XML on port 9000). Leave
-        company blank to use the active company in Tally.{' '}
+        Reads companies, chart of accounts, and trial balance via the Node API (TallyPrime XML). Leave company blank to
+        use the active company in Tally.{' '}
         <strong>Local:</strong> <code>npm run dev</code> proxies <code>/api</code> to port 8787.{' '}
-        <strong>Vercel / static build:</strong> set <code>VITE_API_BASE_URL</code> to your API origin (no trailing slash)
-        when building — the CDN has no <code>/api</code>, so without it you will see HTTP 404.{' '}
-        API host must allow CORS (this server uses <code>cors: true</code>). On the API machine:{' '}
-        <code>TALLY_MCP_ROOT</code>, Tally as server on port 9000 (F1 → Settings → Connectivity).
+        <strong>Static build:</strong> set <code>VITE_API_BASE_URL</code> to your API origin (no trailing slash). API
+        uses <code>cors: true</code>. Tally connectivity: <code>TALLY_MCP_ROOT</code> on the server; optional{' '}
+        <code>TALLY_HOST</code> / <code>TALLY_PORT</code> in <code>.env</code> for the default Tally target.
       </p>
+
+      <div className="tally-controls tally-target-panel">
+        <p className="tally-showcase-title">Tally connection</p>
+        <p className="hint small-hint">
+          <strong>Local PC</strong> uses the server default (usually <code>127.0.0.1:9000</code>).{' '}
+          <strong>Custom host</strong> sends <code>tallyHost</code>/<code>tallyPort</code> on each request (for a remote
+          Tally or tunnel). Public APIs should set <code>TALLY_ALLOW_CLIENT_OVERRIDE=false</code> and rely on{' '}
+          <code>TALLY_HOST</code> in the environment instead.
+        </p>
+        <div className="tally-target-row">
+          <label className="tally-target-option">
+            <input
+              type="radio"
+              name="tallyMode"
+              checked={tallyMode === 'local'}
+              onChange={() => setTallyMode('local')}
+            />
+            <span>Local Tally (server default / .env)</span>
+          </label>
+          <label className="tally-target-option">
+            <input
+              type="radio"
+              name="tallyMode"
+              checked={tallyMode === 'custom'}
+              onChange={() => setTallyMode('custom')}
+            />
+            <span>Custom host and port</span>
+          </label>
+        </div>
+        {tallyMode === 'custom' ? (
+          <div className="tally-target-fields">
+            <label className="field tally-target-field">
+              <span>Host or URL</span>
+              <input
+                type="text"
+                placeholder="e.g. 192.168.1.10 or https://tally.example.com"
+                value={tallyCustomHost}
+                onChange={(e) => setTallyCustomHost(e.target.value)}
+                autoComplete="off"
+              />
+            </label>
+            <label className="field tally-target-field tally-target-port">
+              <span>Port</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="9000"
+                value={tallyCustomPort}
+                onChange={(e) => setTallyCustomPort(e.target.value)}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={applyTallyTarget}
+              disabled={!String(tallyCustomHost).trim()}
+            >
+              Apply and reload companies
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="btn" onClick={applyTallyTarget}>
+            Use server default
+          </button>
+        )}
+      </div>
+
       {import.meta.env.VITE_API_BASE_URL ? (
         <p className="hint small-hint">
           Using API:{' '}

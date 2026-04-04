@@ -37,23 +37,64 @@ function normalizeRecommendationsResponse(data) {
 }
 
 /**
- * Browser → API base URL → Express → Tally XML on localhost:9000
+ * Browser → API base URL → Express → Tally XML (host/port from .env or ?tallyHost=&tallyPort=)
  *
  * Local dev: Vite proxies /api to port 8787 (leave VITE_API_BASE_URL unset).
- * Vercel / static hosting: there is no /api on the CDN — set VITE_API_BASE_URL to your Node API
- * origin (e.g. https://your-api.onrender.com) at build time so requests hit the real server.
+ * Vercel / static hosting: set VITE_API_BASE_URL to your Node API origin at build time.
  *
- * Why not call Tally from React directly?
- * - Browsers block cross-origin requests to arbitrary ports (CORS).
- * - Tally’s XML endpoint expects UTF-16 LE bodies; your Express layer (tally.mjs) already matches that.
+ * Optional UI (Tally panel): "Custom" appends tallyHost/tallyPort query params so the API can
+ * reach a different Tally instance (disabled on the server when TALLY_ALLOW_CLIENT_OVERRIDE=false).
  *
- * Tally setup (not ODBC): F1 → Settings → Connectivity → Client/Server configuration →
- * TallyPrime acts as Server, port 9000 (XML). ODBC is a different feature.
+ * Tally setup: F1 → Settings → Connectivity → TallyPrime as Server, XML port (often 9000).
  */
+
+const LS_TALLY_MODE = 'tallyTargetMode';
+const LS_TALLY_HOST = 'tallyCustomHost';
+const LS_TALLY_PORT = 'tallyCustomPort';
+
+/** @returns {'local' | 'custom'} */
+export function getTallyTargetMode() {
+  if (typeof window === 'undefined') return 'local';
+  const m = localStorage.getItem(LS_TALLY_MODE);
+  return m === 'custom' ? 'custom' : 'local';
+}
+
+/** Query fragment for Tally routes: tallyHost=…&tallyPort=… (no leading ?). Empty if local mode. */
+export function getTallyConnectionQueryString() {
+  if (typeof window === 'undefined') return '';
+  if (getTallyTargetMode() !== 'custom') return '';
+  const host = String(localStorage.getItem(LS_TALLY_HOST) || '').trim();
+  const port = String(localStorage.getItem(LS_TALLY_PORT) || '9000').trim();
+  if (!host) return '';
+  return `tallyHost=${encodeURIComponent(host)}&tallyPort=${encodeURIComponent(port)}`;
+}
+
+export function getStoredTallyCustom() {
+  if (typeof window === 'undefined') return { host: '', port: '9000' };
+  return {
+    host: localStorage.getItem(LS_TALLY_HOST) || '',
+    port: localStorage.getItem(LS_TALLY_PORT) || '9000',
+  };
+}
+
+/** @param {'local' | 'custom'} mode */
+export function persistTallyTarget(mode, host, port) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(LS_TALLY_MODE, mode === 'custom' ? 'custom' : 'local');
+  localStorage.setItem(LS_TALLY_HOST, (host ?? '').trim());
+  localStorage.setItem(LS_TALLY_PORT, (port ?? '9000').trim());
+}
+
+function appendTallyQuery(path) {
+  const q = getTallyConnectionQueryString();
+  if (!q) return path;
+  return path.includes('?') ? `${path}&${q}` : `${path}?${q}`;
+}
 
 /** @param {string} path Absolute path starting with / e.g. /api/companies */
 export function tallyApiUrl(path) {
-  const p = path.startsWith('/') ? path : `/${path}`;
+  const p0 = path.startsWith('/') ? path : `/${path}`;
+  const p = appendTallyQuery(p0);
   const base = String(import.meta.env.VITE_API_BASE_URL || '').trim().replace(/\/$/, '');
   return base ? `${base}${p}` : p;
 }

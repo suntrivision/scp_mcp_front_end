@@ -4,7 +4,8 @@ import path from 'node:path';
 import nunjucks from 'nunjucks';
 import { XMLParser } from 'fast-xml-parser';
 import { utility } from './utility.mjs';
-const tally_port = parseInt(process.env.TALLY_PORT || '9000'); // default to 9000 XML port of Tally
+import { getTallyConnection } from '../../server/tally-connection.mjs';
+const tally_port = parseInt(process.env.TALLY_PORT || '9000'); // legacy; postTallyXML uses getTallyConnection()
 const __dirname = import.meta.dirname;
 const lstPullReport = JSON.parse(fs.readFileSync(path.join(__dirname, '../pull/config.json'), 'utf-8'))['reports'];
 nunjucks.configure({
@@ -131,9 +132,10 @@ function sendTally(xml, lstVariables) {
 function postTallyXML(xml) {
     return new Promise((resolve, reject) => {
         try {
+            const { host, port } = getTallyConnection();
             let req = http.request({
-                hostname: 'localhost',
-                port: tally_port,
+                hostname: host,
+                port: port,
                 path: '',
                 method: 'POST',
                 headers: {

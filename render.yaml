@@ -15,3 +15,5 @@ services:
         value: "20"
       - key: TALLY_PORT
         value: "9000"
+      - key: TALLY_ALLOW_CLIENT_OVERRIDE
+        value: "false"

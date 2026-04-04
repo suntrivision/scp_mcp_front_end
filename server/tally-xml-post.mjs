@@ -1,20 +1,20 @@
 import http from 'node:http';
-
-const TALLY_HOST = process.env.TALLY_HOST || '127.0.0.1';
-const TALLY_PORT = Number(process.env.TALLY_PORT || '9000');
+import { getTallyConnection } from './tally-connection.mjs';
 
 /**
  * POST XML to TallyPrime HTTP server (same wire format as tally-prime tally.mjs).
+ * Uses request-scoped host/port from tallyConnectionMiddleware when set.
  * @param {string} xmlUtf8
  * @returns {Promise<string>} UTF-16 LE response body
  */
 export function postTallyUtf16(xmlUtf8) {
   return new Promise((resolve, reject) => {
+    const { host, port } = getTallyConnection();
     const byteLen = Buffer.byteLength(xmlUtf8, 'utf16le');
     const req = http.request(
       {
-        hostname: TALLY_HOST,
-        port: TALLY_PORT,
+        hostname: host,
+        port: port,
         path: '',
         method: 'POST',
         headers: {
@@ -35,7 +35,11 @@ export function postTallyUtf16(xmlUtf8) {
     );
     req.on('error', (e) => {
       if (e && e.code === 'ECONNREFUSED') {
-        reject(new Error(`Cannot connect to Tally at ${TALLY_HOST}:${TALLY_PORT}. Enable XML server (port 9000).`));
+        reject(
+          new Error(
+            `Cannot connect to Tally at ${host}:${port}. Enable the XML/HTTP server in TallyPrime and ensure the port matches.`
+          )
+        );
       } else {
         reject(e);
       }

@@ -13,6 +13,7 @@ import {
   tallyResponseSummary,
 } from './tally-ledger-import-xml.mjs';
 import { postTallyUtf16 } from './tally-xml-post.mjs';
+import { tallyConnectionMiddleware } from './tally-connection.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
 const MCP_ROOT =
@@ -240,6 +241,8 @@ async function getHandlePull() {
 const app = express();
 app.use(cors({ origin: true }));
 app.use(express.json({ limit: '4mb' }));
+/** Per-request Tally XML host/port from ?tallyHost=&tallyPort= (when TALLY_ALLOW_CLIENT_OVERRIDE is not false). */
+app.use(tallyConnectionMiddleware);
 
 /**
  * Dynamic Inventory Shortage — shared by POST /api/frepple/query (body.mode === "inventory_shortage")

@@ -42,15 +42,29 @@ export default async function forwardTallyBackend(req, res, pathOverride) {
     }
   }
 
+  const budgetMs = Number(process.env.TALLY_PROXY_FETCH_MS);
+  const signal =
+    Number.isFinite(budgetMs) && budgetMs > 0 && typeof AbortSignal !== 'undefined' && AbortSignal.timeout
+      ? AbortSignal.timeout(budgetMs)
+      : undefined;
+
   try {
-    const upstream = await fetch(targetUrl, init);
+    const upstream = await fetch(targetUrl, signal ? { ...init, signal } : init);
     const text = await upstream.text();
     const ctOut = upstream.headers.get('content-type');
     if (ctOut) res.setHeader('content-type', ctOut);
     return res.status(upstream.status).send(text);
   } catch (e) {
+    const name = e?.name || '';
+    const msg = e?.message || String(e);
+    if (name === 'AbortError' || /aborted|timeout/i.test(msg)) {
+      return res.status(504).json({
+        error:
+          'Tally proxy timed out. On Vercel Hobby (10s limit), set VITE_API_BASE_URL to your Node API at build time so the browser calls Render directly, or set TALLY_PROXY_FETCH_MS and upgrade function maxDuration. See DEPLOY_VERCEL.md.',
+      });
+    }
     return res.status(502).json({
-      error: e?.message || 'Unable to reach TALLY_BACKEND_URL',
+      error: msg || 'Unable to reach TALLY_BACKEND_URL',
     });
   }
 }

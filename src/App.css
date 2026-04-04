@@ -1153,6 +1153,15 @@ td.empty {
   min-width: 5.5rem;
 }
 
+.tally-vercel-warn {
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
 .tally-import-sample {
   margin-top: 0.75rem;
   display: flex;

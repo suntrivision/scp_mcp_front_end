@@ -4,7 +4,7 @@ import path from 'node:path';
 import nunjucks from 'nunjucks';
 import { XMLParser } from 'fast-xml-parser';
 import { utility } from './utility.mjs';
-import { getTallyConnection } from '../../server/tally-connection.mjs';
+import { getTallyConnection, formatNodeError } from '../../server/tally-connection.mjs';
 const tally_port = parseInt(process.env.TALLY_PORT || '9000'); // legacy; postTallyXML uses getTallyConnection()
 const __dirname = import.meta.dirname;
 const lstPullReport = JSON.parse(fs.readFileSync(path.join(__dirname, '../pull/config.json'), 'utf-8'))['reports'];
@@ -158,10 +158,10 @@ function postTallyXML(xml) {
                 });
             });
             req.on('error', (reqError) => {
-                if (reqError && reqError.message === 'ECONNREFUSED')
-                    reject('Unable to connect to Tally');
+                if (reqError && (reqError.code === 'ECONNREFUSED' || reqError.message === 'ECONNREFUSED'))
+                    reject(new Error('Unable to connect to Tally (connection refused). Is TallyPrime running as Server on the configured host/port?'));
                 else
-                    reject(reqError);
+                    reject(new Error(formatNodeError(reqError)));
             });
             req.write(xml, 'utf16le');
             req.end();
@@ -303,7 +303,7 @@ function extractReport(reportConfig, reportInputParams) {
             }
         }
         catch (err) {
-            retval.error = err && err.message ? err.message : String(err || 'Report extraction failed');
+            retval.error = formatNodeError(err);
         }
         finally {
             resolve(retval);

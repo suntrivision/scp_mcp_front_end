@@ -1,5 +1,5 @@
 import http from 'node:http';
-import { getTallyConnection } from './tally-connection.mjs';
+import { getTallyConnection, formatNodeError } from './tally-connection.mjs';
 
 /**
  * POST XML to TallyPrime HTTP server (same wire format as tally-prime tally.mjs).
@@ -41,7 +41,7 @@ export function postTallyUtf16(xmlUtf8) {
           )
         );
       } else {
-        reject(e);
+        reject(new Error(`${formatNodeError(e)} (target ${host}:${port})`));
       }
     });
     req.write(xmlUtf8, 'utf16le');

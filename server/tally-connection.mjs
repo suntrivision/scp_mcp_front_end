@@ -1,6 +1,66 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 
 const tallyAsyncLocal = new AsyncLocalStorage();
+const DEFAULT_TALLY_PORT = 9000;
+
+/** Node may emit AggregateError when TCP fails (e.g. IPv4 + IPv6); surface nested causes. */
+export function formatNodeError(err) {
+  if (err == null) return 'Unknown error';
+  if (typeof err === 'string') return err;
+  if (err.name === 'AggregateError' && Array.isArray(err.errors) && err.errors.length) {
+    const parts = err.errors.map((e) => {
+      const code = e && e.code ? `${e.code} ` : '';
+      const msg = e && e.message ? e.message : String(e);
+      return `${code}${msg}`.trim();
+    });
+    return parts.filter(Boolean).join('; ') || err.message || 'Multiple connection failures';
+  }
+  return err.message || String(err);
+}
+
+/**
+ * Parse TALLY_HOST (may be `http://ip`, `http://ip:9000`, or bare `ip`) and TALLY_PORT.
+ * URLs without an explicit port use TALLY_PORT / default 9000 — never HTTP's implicit 80.
+ */
+export function parseTallyHostPort(rawHost, rawPort) {
+  const portFromEnv = (() => {
+    const n = Number(rawPort);
+    if (Number.isFinite(n) && n >= 1 && n <= 65535) return Math.trunc(n);
+    return DEFAULT_TALLY_PORT;
+  })();
+
+  const h = String(rawHost || '').trim();
+  if (!h) return { host: '127.0.0.1', port: portFromEnv };
+
+  if (/^https?:\/\//i.test(h)) {
+    try {
+      const u = new URL(h);
+      const host = u.hostname || '';
+      const explicit = u.port;
+      const port = explicit ? Number(explicit) : portFromEnv;
+      return {
+        host,
+        port: Number.isFinite(port) && port >= 1 && port <= 65535 ? port : portFromEnv,
+      };
+    } catch {
+      return { host: sanitizeTallyHost(h) || '127.0.0.1', port: portFromEnv };
+    }
+  }
+
+  const noPath = h.split('/')[0];
+  if (noPath.includes(':') && !noPath.startsWith('[')) {
+    const parts = noPath.split(':');
+    const last = parts[parts.length - 1];
+    if (/^\d+$/.test(last)) {
+      const portNum = Number(last);
+      const hostOnly = parts.slice(0, -1).join(':');
+      if (hostOnly && portNum >= 1 && portNum <= 65535) {
+        return { host: hostOnly, port: portNum };
+      }
+    }
+  }
+  return { host: noPath, port: portFromEnv };
+}
 
 /**
  * Effective Tally XML/HTTP target for this request (set by middleware from query or env).
@@ -8,10 +68,7 @@ const tallyAsyncLocal = new AsyncLocalStorage();
 export function getTallyConnection() {
   const stored = tallyAsyncLocal.getStore();
   if (stored) return stored;
-  return {
-    host: process.env.TALLY_HOST || '127.0.0.1',
-    port: Number(process.env.TALLY_PORT || 9000),
-  };
+  return parseTallyHostPort(process.env.TALLY_HOST, process.env.TALLY_PORT);
 }
 
 export function runWithTallyConnection(conn, fn) {
@@ -64,30 +121,19 @@ function hostAllowed(host) {
 }
 
 function resolveFromRequest(req) {
-  const envHost = process.env.TALLY_HOST || '127.0.0.1';
-  const envPort = Number(process.env.TALLY_PORT || 9000);
   if (!clientOverrideAllowed()) {
-    return { host: envHost, port: envPort };
+    return parseTallyHostPort(process.env.TALLY_HOST, process.env.TALLY_PORT);
   }
   const qh = req.query?.tallyHost;
   const qp = req.query?.tallyPort;
-  let host = envHost;
-  let port = envPort;
   if (qh != null && String(qh).trim()) {
-    const parsed = sanitizeTallyHost(String(qh));
-    if (!parsed || !hostAllowed(parsed)) {
+    const { host, port } = parseTallyHostPort(String(qh), qp != null && String(qp).trim() !== '' ? qp : process.env.TALLY_PORT);
+    if (!host || !hostAllowed(host)) {
       return { error: 'Invalid or disallowed Tally host (check TALLY_ALLOWED_HOSTS).' };
     }
-    host = parsed;
+    return { host, port };
   }
-  if (qp != null && String(qp).trim() !== '') {
-    const n = Number(qp);
-    if (!Number.isFinite(n) || n < 1 || n > 65535) {
-      return { error: 'Invalid Tally port' };
-    }
-    port = Math.trunc(n);
-  }
-  return { host, port };
+  return parseTallyHostPort(process.env.TALLY_HOST, process.env.TALLY_PORT);
 }
 
 /**

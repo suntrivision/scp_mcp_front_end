@@ -39,6 +39,14 @@ Then set these in the Vercel project **Settings → Environment Variables**:
 
 If you prefer the browser to call the Node API **directly** (no Vercel proxy for Tally), omit `TALLY_BACKEND_URL` and build with `VITE_API_BASE_URL=https://your-node-api.example.com` instead (CORS must allow your Vercel origin on the Node server).
 
+### Tally + `FUNCTION_INVOCATION_TIMEOUT` / HTTP 504
+
+Vercel serverless functions have a **maximum duration** (often **10s on Hobby**; higher on Pro with `maxDuration` in `vercel.json`). The Tally proxy (`api/*.mjs` → `TALLY_BACKEND_URL`) waits on **Render + Tally**, so cold starts or slow XML can exceed the limit → **504**.
+
+**Recommended:** Set **`VITE_API_BASE_URL`** to your Render (or other) Node API URL **at build time**. The UI then calls that origin directly; **no Vercel function** runs for `/api/companies`, etc., so you avoid this timeout. Your Node API already uses `cors({ origin: true })`.
+
+**Alternative:** Keep the proxy and set **`TALLY_PROXY_FETCH_MS`** (e.g. `9500`) on Vercel so the proxy fails fast with a JSON error instead of an opaque 504; you still need a plan that allows enough wall time if the backend is slow.
+
 Redeploy after setting env vars:
 
 ```bash

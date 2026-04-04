@@ -301,6 +301,17 @@ export default function TallyPanel() {
         <code>TALLY_HOST</code> / <code>TALLY_PORT</code> in <code>.env</code> for the default Tally target.
       </p>
 
+      {typeof window !== 'undefined' &&
+      /\.vercel\.app$/i.test(window.location.hostname) &&
+      !import.meta.env.VITE_API_BASE_URL ? (
+        <p className="err tally-vercel-warn" role="alert">
+          <strong>Vercel:</strong> Tally calls go through a short-lived serverless proxy and can hit{' '}
+          <code>FUNCTION_INVOCATION_TIMEOUT</code> (504). Set{' '}
+          <code>VITE_API_BASE_URL=https://your-node-api.onrender.com</code> in the Vercel build env so the browser talks
+          to your Node API directly (same CORS as today). See <code>DEPLOY_VERCEL.md</code>.
+        </p>
+      ) : null}
+
       <div className="tally-controls tally-target-panel">
         <p className="tally-showcase-title">Tally connection</p>
         <p className="hint small-hint">
@@ -317,7 +328,10 @@ export default function TallyPanel() {
               checked={tallyMode === 'local'}
               onChange={() => setTallyMode('local')}
             />
-            <span>Local Tally (server default / .env)</span>
+            <span>
+              Local Tally (<code>127.0.0.1</code> + <code>TALLY_PORT</code>, default 9000 — same machine as the Node
+              API)
+            </span>
           </label>
           <label className="tally-target-option">
             <input

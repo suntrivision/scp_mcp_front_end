@@ -15,6 +15,19 @@ import {
 import { postTallyUtf16 } from './tally-xml-post.mjs';
 import { tallyConnectionMiddleware } from './tally-connection.mjs';
 
+/** Tally XML transport / DNS — prefer 503 when the host/port is unreachable. */
+function tallyPullErrorStatus(message) {
+  const s = String(message || '');
+  if (
+    /ECONNREFUSED|ENOTFOUND|ETIMEDOUT|EHOSTUNREACH|ECONNRESET|Unable to connect|getaddrinfo|connection refused|Multiple connection failures/i.test(
+      s
+    )
+  ) {
+    return 503;
+  }
+  return 400;
+}
+
 const PORT = Number(process.env.PORT || 8787);
 const MCP_ROOT =
   process.env.TALLY_MCP_ROOT ||
@@ -304,7 +317,7 @@ app.get('/api/companies', async (_req, res) => {
     const pull = await getHandlePull();
     const resp = await pull('list-master', params);
     if (resp.error) {
-      return res.status(400).json({ error: resp.error });
+      return res.status(tallyPullErrorStatus(resp.error)).json({ error: resp.error });
     }
     const rows = resp.data ?? [];
     const names = rows
@@ -327,7 +340,7 @@ app.get('/api/chart-of-accounts', async (req, res) => {
     const pull = await getHandlePull();
     const resp = await pull('chart-of-accounts', params);
     if (resp.error) {
-      return res.status(400).json({ error: resp.error });
+      return res.status(tallyPullErrorStatus(resp.error)).json({ error: resp.error });
     }
     res.json({ rows: resp.data ?? [] });
   } catch (e) {
@@ -353,7 +366,7 @@ app.get('/api/trial-balance', async (req, res) => {
     const pull = await getHandlePull();
     const resp = await pull('trial-balance', params);
     if (resp.error) {
-      return res.status(400).json({ error: resp.error });
+      return res.status(tallyPullErrorStatus(resp.error)).json({ error: resp.error });
     }
     res.json({ rows: resp.data ?? [] });
   } catch (e) {

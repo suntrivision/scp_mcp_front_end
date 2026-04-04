@@ -1,0 +1,20 @@
+# Render Web Service — Node API (Tally MCP + frePPle routes in server/index.mjs)
+# https://render.com/docs/yaml-spec
+#
+# Before first deploy:
+# 1) Vendor tally-prime MCP: copy dist/tally.mjs into ./tally-prime/dist/ in this repo
+#    (same layout as local TALLY_MCP_ROOT; see server/index.mjs getHandlePull).
+# 2) In the Render dashboard, set TALLY_HOST (and TALLY_PORT if not 9000) to a host:port
+#    where TallyPrime’s XML/HTTP server is reachable from the internet (tunnel, VPN, or
+#    forwarded static IP). Render cannot reach 127.0.0.1 on your PC.
+# 3) Optional: set TALLY_MCP_ROOT if you place tally.mjs somewhere other than ./tally-prime
+
+services:
+  - type: web
+    name: tally-mcp-api
+    runtime: node
+    buildCommand: npm ci
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: "20"

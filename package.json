@@ -6,6 +6,7 @@
     "dev": "concurrently -n api,web -c blue,green \"node server/index.mjs\" \"node scripts/wait-api.mjs && vite\"",
     "dev:client": "vite",
     "dev:server": "node server/index.mjs",
+    "start": "node server/index.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

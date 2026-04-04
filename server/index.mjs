@@ -15,7 +15,11 @@ import {
 import { postTallyUtf16 } from './tally-xml-post.mjs';
 
 const PORT = Number(process.env.PORT || 8787);
-const MCP_ROOT = process.env.TALLY_MCP_ROOT || 'C:\\mcp\\tally-prime';
+const MCP_ROOT =
+  process.env.TALLY_MCP_ROOT ||
+  (process.platform === 'win32'
+    ? 'C:\\mcp\\tally-prime'
+    : path.join(process.cwd(), 'tally-prime'));
 const CLAUDE_WORKDIR = process.env.CLAUDE_WORKDIR || 'C:\\claudeagents';
 
 /** Node services often lack PATH entries for Claude Code; prefer a real .exe. */
